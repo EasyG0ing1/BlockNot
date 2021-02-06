@@ -154,15 +154,15 @@ Below you will find the name of each method in the library and any arguments tha
 #### For any method call that resets a timer by default, the resetting behavior can be overridden by passing **NO_RESET** into the methods argument.
 
 
-*    **triggered()** - Returns true if the duration time has passed. Also resets the timer (override by passing NO_RESET as an argument)  
-*    **notTriggered()** - Returns true if the trigger event has not happened yet  
-*    **getDuration()** - Returns an unsigned long, the duration that is currently set in the timer  
-*    **setDuration()** - Override the current timer duration and set it to a new value. This also resets the timer. If you need to the timer to NOT reset, then pass arguments like this (newDuration, NO_RESET);  
-*    **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer, to also reset, call like this addTime(newTime,WITH_RESET);
+*    **triggered()** - Returns true if the duration time has passed. Also resets the timer (override by passing NO_RESET as an argument).
+*    **notTriggered()** - Returns true if the trigger event has not happened yet.
+*    **getDuration()** - Returns an unsigned long, the duration that is currently set in the timer.
+*    **setDuration()** - Override the current timer duration and set it to a new value. This also resets the timer. If you need the timer to NOT reset, then pass arguments like this (newDuration, NO_RESET);
+*    **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer, to also reset, call like this addTime(newTime, WITH_RESET);
 *    **takeTime()** - The opposite effect of addTime(), same deal if you want to also reset the timer.
-*    **getTimeUntilTrigger()** - Returns an unsigned long with the number of milliseconds remaining until the trigger event happens  
-*    **timeSinceLastReset()** - Returns an unsigned long with the number of milliseconds that have passed since the timer was last reset or instantiated.  
-*    **reset()** - Sets the start time of the timer to the current millis()  
+*    **getTimeUntilTrigger()** - Returns an unsigned long with the number of milliseconds remaining until the trigger event happens.
+*    **timeSinceLastReset()** - Returns an unsigned long with the number of milliseconds that have passed since the timer was last reset or instantiated.
+*    **reset()** - Sets the start time of the timer to the current millis().
 *    **firstTrigger()** - Returns true only once and only after the timer has triggered
 
 
