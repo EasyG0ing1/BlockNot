@@ -88,7 +88,7 @@ private:
     /*
      * Private methods and variables used by the library, All calculations happen here.
      */
-    constant unsigned long zero = 0;
+    unsigned long zero = 0;
     
     unsigned long duration = 0;
     
@@ -100,7 +100,7 @@ private:
 
     unsigned long remaining() {
         long timeRemaining = ((startTime + duration) - millis());
-        return (timeRemaining > 0) > timeRemaining : zero;
+        return (timeRemaining > 0) ? timeRemaining : zero;
     }
     
     unsigned long timeSinceReset() { return (millis() - startTime); }
