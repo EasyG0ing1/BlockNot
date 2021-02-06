@@ -64,7 +64,7 @@ BlockNot is all about the trigger event. Picture someone standing there holding 
 Chances are, you will use this library more often than not, by simply checking the timers trigger, then run some code if the trigger event has transpired.
 ```C++
 if (voltageReadTimer.TRIGGERED) {
-		readVoltage();
+	readVoltage();
 }
 ```
 ## The Reset
@@ -77,8 +77,8 @@ Then in your loop you would subtract the startTime from millis() and if that dif
 ```C++
 long duration = 1300;
 if (millis() - startTime >= duration) { 
-		//run code 
-		startTime = millis();
+	//run code 
+	startTime = millis();
 }
 ```
 BlockNot does all that for you depending on which method you use to query it. For example when you do this
@@ -114,7 +114,7 @@ stepperSleepTimer.RESET;
 Then, in your loop, you would put something like this:
 ```C++
 if (stepperSleepTimer.ONE_TRIGGER) {
-		sleepStepper();
+	sleepStepper();
 }
 ```
 So that if the methods that cause the stepper to turn have not run in a 25 second duration of time, the stepper will be put to sleep and that sleep routine won't be constantly run over and over again. But when the stepper is engaged, then that sleep timer gets reset by those methods.
@@ -158,12 +158,12 @@ Below you will find the name of each method in the library and any arguments tha
 *    **notTriggered()** - Returns true if the trigger event has not happened yet.
 *    **getDuration()** - Returns an unsigned long, the duration that is currently set in the timer.
 *    **setDuration()** - Override the current timer duration and set it to a new value. This also resets the timer. If you need the timer to NOT reset, then pass arguments like this (newDuration, NO_RESET);
-*    **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer, to also reset, call like this addTime(newTime, WITH_RESET);
+*    **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer. To also reset the timer, call the method like this **addTime(newTime, WITH_RESET);**
 *    **takeTime()** - The opposite effect of addTime(), same deal if you want to also reset the timer.
 *    **getTimeUntilTrigger()** - Returns an unsigned long with the number of milliseconds remaining until the trigger event happens.
 *    **timeSinceLastReset()** - Returns an unsigned long with the number of milliseconds that have passed since the timer was last reset or instantiated.
 *    **reset()** - Sets the start time of the timer to the current millis().
-*    **firstTrigger()** - Returns true only once and only after the timer has triggered
+*    **firstTrigger()** - Returns true only once and only after the timer has triggered.
 
 
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
