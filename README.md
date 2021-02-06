@@ -151,17 +151,6 @@ This sketch has SIX timers created and running at the same time. There are vario
 
 Below you will find the name of each method in the library and any arguments that it accepts. You can also find the names of the macros that are connected to each method along with the arguments that a given macro may or may not pass to the method. The macros are key to making your code simple. BlockNot is key to making non-blocking timers easy and practical.
 
-1.  2 spaces after a numbered list.
-    4 space indent for wrapped text.
-2.  2 spaces again.
-
-*   3 spaces after a bullet.
-    4 space indent for wrapped text.
-    1.  2 spaces after a numbered list.
-        8 space indent for the wrapped text of a nested list.
-    2.  Looks nice, don't it?
-*   3 spaces after a bullet.
-
 #### For any method call that resets a timer by default, the resetting behavior can be overridden by passing **NO_RESET** into the methods argument.
 
 
