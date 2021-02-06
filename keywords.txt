@@ -1,0 +1,50 @@
+#######################################
+# Syntax Coloring Map For BlockNot
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+setDuration	KEYWORD2
+addTime	KEYWORD2
+takeTime	KEYWORD2
+triggered	KEYWORD2
+notTriggered	KEYWORD2
+getTimeUntilTrigger	KEYWORD2
+getDuration	KEYWORD2
+timeSinceLastReset	KEYWORD2
+firstTrigger	KEYWORD2
+reset	KEYWORD2
+
+######################################
+# Instances (KEYWORD2)
+#######################################
+
+BlockNot	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+TIME_PASSED	LITERAL1
+TIME_SINCE_RESET	LITERAL1
+ELAPSED	LITERAL1
+TIME_REMAINING	LITERAL1
+REMAINING	LITERAL1
+DURATION	LITERAL1
+DONE	LITERAL1
+TRIGGERED	LITERAL1
+DONE_NO_RESET	LITERAL1
+HAS_TRIGGERED	LITERAL1
+NOT_DONE	LITERAL1
+NOT_TRIGGERED	LITERAL1
+FIRST_TRIGGER	LITERAL1
+RESET	LITERAL1
+WITH_RESET	LITERAL1
+NO_RESET	LITERAL1
+
