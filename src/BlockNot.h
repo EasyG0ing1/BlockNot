@@ -8,6 +8,7 @@
 #define NO_RESET false
 
 //Macros - their usage and significance is described in README.md
+
 #define TIME_PASSED      timeSinceLastReset()
 #define TIME_SINCE_RESET timeSinceLastReset()
 #define ELAPSED          timeSinceLastReset()
@@ -22,6 +23,13 @@
 #define NOT_TRIGGERED    notTriggered()
 #define FIRST_TRIGGER    firstTrigger()
 #define RESET            reset()
+#define ENABLE           enable()
+#define DISABLE          disable()
+#define SWAP             negateState()
+#define FLIP             negateState()
+#define SWAP_STATE       negateState()
+#define FLIP_STATE       negateState()
+#define ENABLED          isEnabled()
 
 
 class BlockNot {
@@ -37,21 +45,33 @@ public:
         reset();
     }
     
-    void setDuration(const unsigned long milliseconds, bool resetOption = WITH_RESET) {
+    BlockNot(unsigned long milliseconds, unsigned long disableReturnValue) {
         duration = milliseconds;
-        if (resetOption) reset();
+        disableReturn = disableReturnValue;
+        reset();
+    }
+    
+    void setDuration(const unsigned long milliseconds, bool resetOption = WITH_RESET) {
+        if (enabled) {
+            duration = milliseconds;
+            if (resetOption) reset();
+        }
     };
     
     void addTime(const unsigned long milliseconds, bool resetOption = NO_RESET) {
-        const unsigned long newDuration = duration + milliseconds;
-        duration = newDuration;
-        if (resetOption) reset();
+        if (enabled) {
+            const unsigned long newDuration = duration + milliseconds;
+            duration = newDuration;
+            if (resetOption) reset();
+        }
     }
     
     void takeTime(const unsigned long milliseconds, bool resetOption = NO_RESET) {
-        long newDuration = duration - milliseconds;
-        duration = (newDuration > 0) ? newDuration : 0;
-        if (resetOption) reset();
+        if (enabled) {
+            long newDuration = duration - milliseconds;
+            duration = newDuration > 0 ? newDuration : 0;
+            if (resetOption) reset();
+        }
     }
     
     boolean triggered(bool resetOption = true) {
@@ -64,15 +84,6 @@ public:
     
     boolean notTriggered() { return hasNotTriggered(); }
     
-    unsigned long getTimeUntilTrigger() {
-        long timeLeft = remaining();
-        return timeLeft > 0 ? timeLeft : 0;
-    }
-    
-    unsigned long getDuration() { return duration; }
-    
-    unsigned long timeSinceLastReset() { return timeSinceReset(); }
-    
     boolean firstTrigger() {
         if (hasTriggered() && !onceTriggered) {
             onceTriggered = true;
@@ -80,6 +91,26 @@ public:
         }
         return false;
     }
+    
+    boolean isEnabled() {
+        return enabled;
+    }
+    
+    unsigned long getTimeUntilTrigger() { return remaining(); }
+    
+    unsigned long getDuration() { return enabled ? duration : disableReturn; }
+    
+    unsigned long timeSinceLastReset() { return timeSinceReset(); }
+    
+    void setDisableReturnValue(unsigned long disableReturnValue) {
+        disableReturn = disableReturnValue;
+    }
+    
+    void enable() { enabled = true; }
+    
+    void disable() { enabled = false; }
+    
+    void negateState() { enabled = !enabled; }
     
     void reset() { resetTimer(); }
 
@@ -94,21 +125,24 @@ private:
     
     unsigned long startTime = 0;
     
+    unsigned long disableReturn = 0;
+    
+    bool enabled = true;
+    
     bool onceTriggered = false;
     
-    void resetTimer() { startTime = millis(); onceTriggered = false; }
-
-    unsigned long remaining() {
-        long timeRemaining = ((startTime + duration) - millis());
-        return (timeRemaining > 0) ? timeRemaining : zero;
+    void resetTimer() {
+        startTime = enabled ? millis() : startTime;
+        onceTriggered = enabled ? false : onceTriggered;
     }
     
-    unsigned long timeSinceReset() { return (millis() - startTime); }
+    unsigned long remaining() { return enabled ? (startTime + duration) - millis() : disableReturn; }
     
-    bool hasTriggered() { return ((millis() - startTime) >= duration); }
+    unsigned long timeSinceReset() { return enabled ? (millis() - startTime) : disableReturn; }
     
-    boolean hasNotTriggered() { return ((millis() - startTime) < duration); }
+    bool hasTriggered() { return enabled ? ((millis() - startTime) >= duration) : false; }
+    
+    boolean hasNotTriggered() { return enabled ? ((millis() - startTime) < duration) : false; }
 };
 
 #endif
-
