@@ -5,6 +5,8 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
+WITH_RESET	KEYWORD1
+NO_RESET	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -20,6 +22,9 @@ getDuration	KEYWORD2
 timeSinceLastReset	KEYWORD2
 firstTrigger	KEYWORD2
 reset	KEYWORD2
+enable	KEYWORD2
+disable	KEYWORD2
+isEnabled	KEYWORD2
 
 ######################################
 # Instances (KEYWORD2)
@@ -45,6 +50,10 @@ NOT_DONE	LITERAL1
 NOT_TRIGGERED	LITERAL1
 FIRST_TRIGGER	LITERAL1
 RESET	LITERAL1
-WITH_RESET	LITERAL1
-NO_RESET	LITERAL1
-
+ENABLE	LITERAL1
+DISABLE	LITERAL1
+SWAP	LITERAL1
+FLIP	LITERAL1
+SWAP_STATE	LITERAL1
+FLIP_STATE	LITERAL1
+ENABLED	LITERAL1
