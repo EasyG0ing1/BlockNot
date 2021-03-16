@@ -28,24 +28,24 @@ void loop() {
 Tru doing this with the delay() method ... not gonna happen!
 */
     
-    if (blinkTimer.TRIGGERED) {
+    if (blinkTimer1.TRIGGERED) {
         state1 = !state1;
-        digitalWrite(LED1, (state ? HIGH : LOW));
+        digitalWrite(LED1, (state1 ? HIGH : LOW));
     }
 
-    if (blinkTimer.TRIGGERED) {
+    if (blinkTimer2.TRIGGERED) {
         state2 = !state2;
-        digitalWrite(LED2, (state ? HIGH : LOW));
+        digitalWrite(LED2, (state2 ? HIGH : LOW));
     }
 
-    if (blinkTimer.TRIGGERED) {
+    if (blinkTimer3.TRIGGERED) {
         state3 = !state3;
-        digitalWrite(LED3, (state ? HIGH : LOW));
+        digitalWrite(LED3, (state3 ? HIGH : LOW));
     }
 
-    if (blinkTimer.TRIGGERED) {
+    if (blinkTimer4.TRIGGERED) {
         state4 = !state4;
-        digitalWrite(LED4, (state ? HIGH : LOW));
+        digitalWrite(LED4, (state4 ? HIGH : LOW));
     }
 
 }
