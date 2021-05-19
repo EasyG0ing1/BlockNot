@@ -1,8 +1,10 @@
-#include <Arduino.h>
-
 #ifndef BlockNot_h
 #define BlockNot_h
 #pragma once
+
+#include <Arduino.h>
+#include <forward_list>
+using namespace std;
 
 #define WITH_RESET true
 #define NO_RESET false
@@ -39,16 +41,23 @@ public:
     This library is very simple as libraries go. Each method in the library is described in README.md
     see: https://github.com/EasyG0ing1/BlockNot for complete documentation.
 */
-    
-    BlockNot(unsigned long milliseconds) {
+   	static forward_list<BlockNot*> timerList;
+
+    BlockNot() { 
+		timerList.push_front(this);
+	}
+	
+	BlockNot(unsigned long milliseconds) {
         duration = milliseconds;
         reset();
+		timerList.push_front(this);
     }
     
     BlockNot(unsigned long milliseconds, unsigned long disableReturnValue) {
         duration = milliseconds;
         disableReturn = disableReturnValue;
         reset();
+		timerList.push_front(this);
     }
     
     void setDuration(const unsigned long milliseconds, bool resetOption = WITH_RESET) {
@@ -144,5 +153,11 @@ private:
     
     boolean hasNotTriggered() { return enabled ? ((millis() - startTime) < duration) : false; }
 };
+
+void resetAllTimers() {
+	for( BlockNot* timer : BlockNot::timerList ) timer->reset() ; 
+}
+
+forward_list<BlockNot*> BlockNot::timerList ;
 
 #endif
