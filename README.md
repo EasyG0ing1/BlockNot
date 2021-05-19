@@ -196,7 +196,7 @@ There are more methods that allow you to affect change on your timers after inst
 
 ## Examples
 
-There are currently three examples in the library.
+There are currently four examples in the library.
 
 #### BlockNotBlink
 This sketch does the same thing as the famous blink sketch, only it does it with BlockNot elegance and style.
@@ -209,6 +209,10 @@ If you have a nano or an uno or equivalent laying around and four LEDs and some 
 
 #### TimersRules
 This sketch has SIX timers created and running at the same time. There are various things happening at the trigger event of each timer. The expected behavior is explained in the out Strings to Serial. Read them, then let it run for a minute or so then stop your Serial monitor and look at the output. You should be able to look at the number of seconds that is given in each output, and compare the differences with the expected behavior and see that everything runs as it is expected to run.<BR><BR>For example, when LiteTimer triggers, you should soon after that see the output from stopAfterThreeTimer.  When you look at the number of seconds in each of their outputs, you can see that indeed it does trigger three seconds after being reset, but then it does not re-trigger until after it is reset again.
+	
+#### ResetAll
+This sketch shows how all BlockNot timers defined in the program can be reset with a single line of code, rather than having to call reset() for each and every one separately. This comes in handy when all timers need to be reset at once, e.g. after the system clock has been adjusted from an external source (NTP or RTC, for example).
+	
 <BR><BR>These examples barely scratch the surface of what you can accomplish with BlockNot.
 
 # Methods
@@ -231,6 +235,7 @@ Below you will find the name of each method in the library and any arguments tha
 *    **enable()** - enables the timer. Timers are enabled by default.
 *    **disable()** - disables the timer.
 *    **isEnabled()** - returns true or false depending on the current state of the timer.
+*    **resetAllTimers()** - loops through all timers and calls the reset() method for each one of them.
 
 
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
