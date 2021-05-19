@@ -44,20 +44,20 @@ public:
     static forward_list<BlockNot*> timerList;
 
     BlockNot() { 
-	timerList.push_front(this);
+	    timerList.push_front(this);
     }
 	
 	BlockNot(unsigned long milliseconds) {
         duration = milliseconds;
         reset();
-	timerList.push_front(this);
+	    timerList.push_front(this);
     }
     
     BlockNot(unsigned long milliseconds, unsigned long disableReturnValue) {
         duration = milliseconds;
         disableReturn = disableReturnValue;
         reset();
-	timerList.push_front(this);
+	    timerList.push_front(this);
     }
     
     void setDuration(const unsigned long milliseconds, bool resetOption = WITH_RESET) {
