@@ -25,7 +25,7 @@ void setup() {
 void loop() {
 
 /*
-Tru doing this with the delay() method ... not gonna happen!
+Try doing this with the delay() method ... not gonna happen!
 */
     
     if (blinkTimer1.TRIGGERED) {
