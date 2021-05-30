@@ -8,10 +8,10 @@ BlockNot myTimer13s(13000);
 
 BlockNot myReset   (30000);  // Timer to trigger reset of all timers every 30s
 
-long startTime = millis();   // To count seconds independent of timers
+unsigned long startTime = millis();   // To count seconds independent of timers
 
 void printTime(BlockNot* timer) {
-    long seconds = (millis() - startTime)/1000;
+    unsigned long seconds = (millis() - startTime)/1000;
     Serial.print("\nTimestamp is " + String(seconds) + ": " + String(timer->getDuration() / 1000) + "s timer was triggered");
 }
 
