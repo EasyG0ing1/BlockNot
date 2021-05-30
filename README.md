@@ -1,52 +1,43 @@
-﻿# BlockNot Arduino Library  
-  
-**This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code. Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**  
-  
+﻿# BlockNot Arduino Library
+**This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code. Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
+
+### Version update notes are at the end of this document
+
 ## Getting started immediately
-Here is an example of BlockNot's easiest and most common usage: 
+Here is an example of BlockNot's easiest and most common usage:
+
+```C++ #include <BlockNot.h>   
+BlockNot myTimer(1300);    
+ void loop() {    
+   if (myTimer.TRIGGERED) {  //Runs every 1300 milliseconds  
+ Serial.println("Hello World!"); } } ``` **YES, it's that simple!** But keep reading to learn about other features.  
+  
+    
+## Theory behind BlockNot    
+ This code is ugly, cumbersome and annoying to type all the time. It is the traditional form of non-blocking timers:  
   
 ```C++  
-#include <BlockNot.h>  
-
-BlockNot myTimer(1300);  
-  
-void loop() {  
-	if (myTimer.TRIGGERED) {  //Runs every 1300 milliseconds
-		Serial.println("Hello World!");
-	}  
-}  
+long someDuration = 1300;  
+long startTime = millis();  
+if (millis() - startTime >= someDuration) {  
+ //Code to run after someDuration has passed.}  
 ```  
-**YES, it's that simple!** But keep reading to learn about other features.
-
-  
-## Theory behind BlockNot  
-  
-This code is ugly, cumbersome and annoying to type all the time. It is the traditional form of non-blocking timers:
-
-```C++
-long someDuration = 1300;
-long startTime = millis();
-if (millis() - startTime >= someDuration) {
-    //Code to run after someDuration has passed.
-}
-```
 
 This, on the other hand, is simple, elegant, and intuitive!
-```C++
-if (myTimer.TRIGGERED) {
-    //Code to run after timer has triggered.
-}
-```
+```C++  
+if (myTimer.TRIGGERED) {  
+ //Code to run after timer has triggered.}  
+```  
 The idea behind BlockNot is very simple. You create the timer, setting it's duration in a single line of code. Then in your loop or in your other methods, you simply engage the timer to see if your defined time duration has come to pass or not. You can do this by calling the methods directly, or by using some macros added into the library based on simple words that greatly enhance the readability and write-ability of your code. The macros also eliminate the need to pass arguments into the methods which further simplifies your code.
 
 For example, if you wanted to see if the timers duration has come to pass, but you don't want to reset the timer, you can use this method:
-```C++
-if (myTimer.triggered(NO_RESET)) {}
-```
+```C++  
+if (myTimer.triggered(NO_RESET)) {}  
+```  
 OR, you can do it like this:
-```C++
-if (myTimer.HAS_TRIGGERED) {}
-```
+```C++  
+if (myTimer.HAS_TRIGGERED) {}  
+```  
 They both do the same thing, but in terms of readability, the second example is the obvious choice. Readability MATTERS, especially as your projects get more complicated.
 
 This is a simple graph showing you how BlockNot timers work. Keep in mind, that what matters here is that from time point 0 until the duration has been reached, your program continues to run - doing other things. delay will not do that for you:
@@ -58,62 +49,61 @@ This is a simple graph showing you how BlockNot timers work. Keep in mind, that 
 BlockNot is all about the trigger event. Picture someone standing there holding a gun pointed towards the sky, and they have been instructed to pull the trigger on the gun every 10 seconds.  Now you know what a trigger event is. It is that moment in time when the timers duration has come to pass. You set the duration when you create your timers. You can also change the duration in an existing timer by setting it to a new value, or by adding / subtracting time to the timers current duration. More about that in the method descriptions.
 
 Chances are, you will use this library more often than not, by simply checking the timers trigger, then run some code if the trigger event has transpired.
-```C++
-if (voltageReadTimer.TRIGGERED) {
-	readVoltage();
-}
-```
+```C++  
+if (voltageReadTimer.TRIGGERED) {  
+ readVoltage();}  
+```  
 ## The Reset
 
 Resetting a timer is critical to performing repeated events at the right intervals. Using the usual method of implementing non-blocking timers, you would first set a variable to the current millis()
-```C++
-long startTime = millis();
-```
+```C++  
+long startTime = millis();  
+```  
 Then in your loop you would subtract the startTime from millis() and if that difference was equal to or greater than your desired time duration, you would run your code... However, if you need that behavior to repeat at the same intervals of time, you then have to reset startTime to the current millis(); Your code would look something like this:
-```C++
-long duration = 1300;
-if (millis() - startTime >= duration) { 
-	//run code 
-	startTime = millis();
-}
-```
-##BlockNot does all of that for you
+```C++  
+long duration = 1300;  
+if (millis() - startTime >= duration) {   
+   //run code   
+   startTime = millis();  
+}  
+```  
+## BlockNot does all of that for you
+
 - depending on which method you use to query it. For example when you do this
-```C++
-if (myTimer.TRIGGERED) { //my code }
-```
+```C++  
+if (myTimer.TRIGGERED) { //my code }  
+```  
 the resetting of startTime is automatic. Whereas if you do this
-```C++
-if (myTimer.HAS_TRIGGERED) { //my code } 
-```
+```C++  
+if (myTimer.HAS_TRIGGERED) { //my code }   
+```  
 the startTime **does not reset** and that test will always come back true every time it is executed in your code, as long as the timers duration has passed.
 
 There is a method which I have found quite handy in specific situations. And that is the FIRST_TRIGGER method. You use it like this:
-```C++
-if (myTimer.FIRST_TRIGGER) { //my code }
-```
+```C++  
+if (myTimer.FIRST_TRIGGER) { //my code }  
+```  
 That method will return true ONE TIME after the timers duration has passed, but subsequent calls to that method will return false until you manually reset the timer like this:
-```C++
-myTimer.RESET;
-```
+```C++  
+myTimer.RESET;  
+```  
 The simplicity of that kind of method and what it allows you to do in a single line of code cannot be over stated. Using **one line of code**, you can do a single trigger event consisting of anything at all!
 
-Why would you need to do that? There are countless scenarios where that would be immediately useful. For example, I've used it with stepper motor projects where I want an idle stepper motor to be completely cut off from any voltage when it's been idle for a defined length of time ... lets say 25 seconds. 
+Why would you need to do that? There are countless scenarios where that would be immediately useful. For example, I've used it with stepper motor projects where I want an idle stepper motor to be completely cut off from any voltage when it's been idle for a defined length of time ... lets say 25 seconds.
 
 So first, we define the timer
-```C++
-BlockNot stepperSleepTimer (25000); // 25 seconds
-```
+```C++  
+BlockNot stepperSleepTimer (25000); // 25 seconds  
+```  
 Then in the code that we use to cause a stepper to actually turn, we add into it the resetting of this sleep timer like this:
-```C++
-stepperSleepTimer.RESET;
-```
+```C++  
+stepperSleepTimer.RESET;  
+```  
 Then, in your loop, you would put something like this:
-```C++
-if (stepperSleepTimer.ONE_TRIGGER) {
-	sleepStepper();
-}
-```
+```C++  
+if (stepperSleepTimer.ONE_TRIGGER) {  
+ sleepStepper();}  
+```  
 So that if the stepper hasn't moved in the last 25 seconds, it will be put to sleep and that sleep routine won't be constantly run over and over again. Yet when the stepper is engaged again, then that sleep timer gets reset.
 
 BlockNot makes it easy for you to establish single trigger events, without ever needing to rely on the Delay method. Spend your efforts working on the core of your project and let BlockNot handle your timing needs.
@@ -144,49 +134,47 @@ These methods will do NOTHING if the timer is disabled. Meaning that the changes
 
 ###How do I chose what number is returned on a disabled timer?
 It's EASY PEASY! All you do is add your desired number when you create your timer like this
-```C++
-BlockNot myTimer(2000, 8675309);
-```
+```C++  
+BlockNot myTimer(2000, 8675309);  
+```  
 The first number is the timers duration and the second number is the return value for all methods that return numeric values when the timer is disabled (Jenny's phone number in the example ;-). That second number CANNOT be a negative number and the compiler will throw an error if you try to set it to one.
 
 You can disable / enable a timer using these methods (for macros, see the end of this document).
-```C++
-myTimer.enable();
-myTimer.disable();
-```
+```C++  
+myTimer.enable();  
+myTimer.disable();  
+```  
 
 And you can find out if the timer is enabled or disabled like this:
-```C++
-myTimer.isEnabled();
-```
+```C++  
+myTimer.isEnabled();  
+```  
 
 You can also flip the state of the timer (if disabled, it will enable it, or if it's enabled, it will disable it):
-```C++
-myTimer.negateState();
-```
+```C++  
+myTimer.negateState();  
+```  
 But the macro's are far easier and more intuitive:
-```C++
-myTimer.FLIP;
-myTimer.SWAP;
-myTimer.FLIP_STATE;
-myTimer.SWAP_STATE;
-```
+```C++  
+myTimer.FLIP;  
+myTimer.SWAP;  
+myTimer.FLIP_STATE;  
+myTimer.SWAP_STATE;  
+```  
 Why would you want to just change the state with one line of code? I can simply disable or enable at will, right?
 
 ABSOLUTELY! However, let's say that you have an event that fires at a regular interval of time, that you engage by using the reliable TRIGGERED method in an if statement. It might be useful to allow the user to make that timed event stop or start at will by pressing a button.
 
-```C++
-if (BUTTON_PRESSED) {
-    myTimer.FLIP;
-    delay(350); //de bouncing the button - delay still has its uses now and then :-)
-}
-```
+```C++  
+if (BUTTON_PRESSED) {  
+ myTimer.FLIP; delay(350); //de bouncing the button - delay still has its uses now and then :-)}  
+```  
 
 So when the timer is disabled by pressing the button, it will always evaluate to FALSE when you call the TRIGGERED method so that it simply won't execute the code that you placed in the if statement. This is much easier than setting up a separate boolean variable and tracking it with the button press.
 
 ## Summary
 
-Well, those are the fundamentals of BlockNot. 
+Well, those are the fundamentals of BlockNot.
 
 Simple, right?
 
@@ -240,20 +228,20 @@ Below you will find the name of each method in the library and any arguments tha
 
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
 
-*    **TIME_PASSED** - timeSinceLastReset() 
-*    **TIME_SINCE_RESET** - timeSinceLastReset() 
-*    **ELAPSED** - timeSinceLastReset() 
-*    **TIME_REMAINING** - getTimeUntilTrigger() 
-*    **REMAINING** - getTimeUntilTrigger() 
-*    **DURATION** - getDuration() 
-*    **DONE** - triggered() 
-*    **TRIGGERED** - triggered() 
-*    **DONE_NO_RESET** - triggered(NO_RESET) 
-*    **HAS_TRIGGERED** - triggered(NO_RESET) 
-*    **NOT_DONE** - notTriggered() 
-*    **NOT_TRIGGERED** - notTriggered() 
-*    **FIRST_TRIGGER** - firstTrigger() 
-*    **RESET** - reset() 
+*    **TIME_PASSED** - timeSinceLastReset()
+*    **TIME_SINCE_RESET** - timeSinceLastReset()
+*    **ELAPSED** - timeSinceLastReset()
+*    **TIME_REMAINING** - getTimeUntilTrigger()
+*    **REMAINING** - getTimeUntilTrigger()
+*    **DURATION** - getDuration()
+*    **DONE** - triggered()
+*    **TRIGGERED** - triggered()
+*    **DONE_NO_RESET** - triggered(NO_RESET)
+*    **HAS_TRIGGERED** - triggered(NO_RESET)
+*    **NOT_DONE** - notTriggered()
+*    **NOT_TRIGGERED** - notTriggered()
+*    **FIRST_TRIGGER** - firstTrigger()
+*    **RESET** - reset()
 *    **ENABLE** - enable()
 *    **DISABLE** - disable()
 *    **SWAP** - negateState()
@@ -262,17 +250,30 @@ Here are the macro terms and the methods that they call along with any arguments
 *    **FLIP_STATE** - negateState()
 *    **ENABLED** - isEnabled()
 
-You can, of course create your own macros within your code. So, for example, let's say that you wanted a macro that overrides the default reset behavior in the setDuration() method, which by default, will change the duration of the timer to your new value and will also reset the timer. But lets say you want to change the duration WITHOUT resting the timer and you wanted that to be done with a word that makes more sense to you. 
+You can, of course create your own macros within your code. So, for example, let's say that you wanted a macro that overrides the default reset behavior in the setDuration() method, which by default, will change the duration of the timer to your new value and will also reset the timer. But lets say you want to change the duration WITHOUT resting the timer and you wanted that to be done with a word that makes more sense to you.
 
-```C++
-#define QUICK_CHANGE(value) myTimer.setDuration(value, false)
-
-QUICK_CHANGE(3200);
-```
+```C++  
+#define QUICK_CHANGE(value) myTimer.setDuration(value, false)  
+  
+QUICK_CHANGE(3200);  
+```  
 
 The only difference here, is that you cannot make a macro that applies universally to all of your timers. You would need to make one for each timer you have created. If you have ideas for macros that you think should be included in BlockNot, let me know and I'll see about adding it.
-  
-Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.  
-<BR>Mike Sims,<BR>
+
+Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.    
+<BR>Mike Sims,<BR>  
 sims.mike@gmail.com
+
+## Vresion Update Notes
+### 1.6.5
+
+- **SECONDS Mode** - Sometimes we only need to work with secons, which makes it pain in the rear to constantly have to work with numbers in the thousands because everything is in milliseconds. SO NOW, if you need to work just with whole seconds, you can declare that your timer is a SECONDS timer when you create it, like this:
+
+ ```C++
+ BlockNot myTimer(5, SECONDS);
+ ```
+Once the timer is established as a SECONDS timer, then any changes you make to it such as adding or removing time, or even setting the duration to a new number, must be done in seconds, not milliseconds.<BR><BR>
+All time calculations under the hood continue to happen in milisecond units, I just included the proper math so that those units are converted from seconds to miliseconds and back on all related methods.<BR><BR>
+Therefore, any methods that you use which return a length of time such as getDuration() etc., will be first calculated using miliseconds, then divided by 1,000 and returned to you, so however C++ rounds those numbers is how you will get them back. But when you're dealing with whole second timers, then fractional second precision should be irrelevant to you. If it matters, then don't use a SECONDS timer.
+
 > Written with [StackEdit](https://stackedit.io/).
