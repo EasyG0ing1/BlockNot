@@ -47,6 +47,11 @@ public:
         addToTimerList();
     }
 
+    BlockNot(bool type) { 
+        seconds = type;
+        addToTimerList();
+    }
+
     BlockNot(unsigned long milliseconds) {
         duration = milliseconds;
         reset();
