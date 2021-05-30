@@ -1,18 +1,18 @@
 #include <BlockNot.h>
 
-BlockNot myTimer03s( 3000);
-BlockNot myTimer05s( 5000);
-BlockNot myTimer07s( 7000);
-BlockNot myTimer11s(11000);
-BlockNot myTimer13s(13000);
+BlockNot myTimer03s( 3, SECONDS);
+BlockNot myTimer05s( 5, SECONDS);
+BlockNot myTimer07s( 7, SECONDS);
+BlockNot myTimer11s(11, SECONDS);
+BlockNot myTimer13s(13, SECONDS);
 
-BlockNot myReset   (30000);  // Timer to trigger reset of all timers every 30s
+BlockNot myReset   (30, SECONDS);  // Timer to trigger reset of all timers every 30s
 
 unsigned long startTime = millis();   // To count seconds independent of timers
 
 void printTime(BlockNot* timer) {
     unsigned long seconds = (millis() - startTime)/1000;
-    Serial.print("\nTimestamp is " + String(seconds) + ": " + String(timer->getDuration() / 1000) + "s timer was triggered");
+    Serial.print("\nTimestamp is " + String(seconds) + ": " + String(timer->getDuration()) + "s timer was triggered");
 }
 
 void setup() {
@@ -44,7 +44,8 @@ void loop()
     }
 
     if (myReset.TRIGGERED) { 
+        printTime(&myReset);
+        Serial.println(F("\n\n---- Reset all timers ----")); 
         resetAllTimers();
-        Serial.println(F("\n\nXXXX Reset all timers XXXX")); 
     } 
 }
