@@ -3,8 +3,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include <forward_list>
-using namespace std;
 
 #define WITH_RESET true
 #define NO_RESET false
@@ -32,8 +30,6 @@ using namespace std;
 #define SWAP_STATE       negateState()
 #define FLIP_STATE       negateState()
 #define ENABLED          isEnabled()
-#define SECONDS          true
-#define MILLISECONDS     false
 
 class BlockNot {
 public:
@@ -42,63 +38,51 @@ public:
     This library is very simple as libraries go. Each method in the library is described in README.md
     see: https://github.com/EasyG0ing1/BlockNot for complete documentation.
 */
-    static forward_list<BlockNot*> timerList;
+   	static BlockNot* firstTimer;
+    static BlockNot* currentTimer;
 
     BlockNot() { 
-	    timerList.push_front(this);
+        addToTimerList();
     }
-	
+
     BlockNot(unsigned long milliseconds) {
         duration = milliseconds;
         reset();
-	    timerList.push_front(this);
+        addToTimerList();
     }
-    
+
     BlockNot(unsigned long milliseconds, unsigned long disableReturnValue) {
         duration = milliseconds;
         disableReturn = disableReturnValue;
         reset();
-	    timerList.push_front(this);
+        addToTimerList();
     }
     
-    BlockNot(unsigned long time, bool type) {
-        seconds = type;
-        duration = (seconds == SECONDS) ? (time * 1000) : time;
-        reset();
-    }
-    
-    BlockNot(unsigned long time, bool type, unsigned long disableReturnValue) {
-        seconds = type;
-        disableReturn = disableReturnValue;
-        duration = (seconds == SECONDS) ? (time * 1000) : time;
-        reset();
-    }
-    
-    
-    void setDuration(const unsigned long time, bool resetOption = WITH_RESET) {
+
+    void setDuration(const unsigned long milliseconds, bool resetOption = WITH_RESET) {
         if (enabled) {
-            duration = (seconds == SECONDS) ? (time * 1000) : time;
+            duration = milliseconds;
             if (resetOption) reset();
         }
     };
-    
-    void addTime(const unsigned long time, bool resetOption = NO_RESET) {
+
+    void addTime(const unsigned long milliseconds, bool resetOption = NO_RESET) {
         if (enabled) {
-            const unsigned long newDuration = duration + ((seconds == SECONDS) ? (time * 1000) : time);
+            const unsigned long newDuration = duration + milliseconds;
             duration = newDuration;
             if (resetOption) reset();
         }
     }
-    
-    void takeTime(const unsigned long time, bool resetOption = NO_RESET) {
+
+    void takeTime(const unsigned long milliseconds, bool resetOption = NO_RESET) {
         if (enabled) {
-            long newDuration = duration - ((seconds == SECONDS) ? (time * 1000) : time);
+            long newDuration = duration - milliseconds;
             duration = newDuration > 0 ? newDuration : 0;
             if (resetOption) reset();
         }
     }
-    
-    boolean triggered(bool resetOption = true) {
+
+    bool triggered(bool resetOption = true) {
         bool triggered = hasTriggered();
         if (resetOption && triggered) {
             reset();
@@ -106,9 +90,9 @@ public:
         return triggered;
     }
     
-    boolean notTriggered() { return hasNotTriggered(); }
+    bool notTriggered() { return hasNotTriggered(); }
     
-    boolean firstTrigger() {
+    bool firstTrigger() {
         if (hasTriggered() && !onceTriggered) {
             onceTriggered = true;
             return true;
@@ -116,16 +100,13 @@ public:
         return false;
     }
     
-    boolean isEnabled() {
+    bool isEnabled() {
         return enabled;
     }
     
     unsigned long getTimeUntilTrigger() { return remaining(); }
     
-    unsigned long getDuration() {
-        unsigned long thisDuration = (seconds == SECONDS) ? (duration / 1000) : duration;
-        return enabled ? thisDuration : disableReturn;
-    }
+    unsigned long getDuration() { return enabled ? duration : disableReturn; }
     
     unsigned long timeSinceLastReset() { return timeSinceReset(); }
     
@@ -141,53 +122,63 @@ public:
     
     void reset() { resetTimer(); }
 
+    void setNextTimer( BlockNot* timer ) { nextTimer = timer; }
+
+    BlockNot* getNextTimer() { return nextTimer; }
+
 private:
     
     /*
      * Private methods and variables used by the library, All calculations happen here.
      */
+    unsigned long zero = 0;
+
     unsigned long duration = 0;
-    
+
     unsigned long startTime = 0;
-    
+
     unsigned long disableReturn = 0;
-    
+
     bool enabled = true;
-    
+
     bool onceTriggered = false;
-    
-    bool seconds = false;
+
+    BlockNot* nextTimer;
     
     void resetTimer() {
         startTime = enabled ? millis() : startTime;
-        if (enabled) onceTriggered = false;
+        onceTriggered = enabled ? false : onceTriggered;
     }
     
-    unsigned long remaining() {
-        unsigned long result =  enabled ? (startTime + duration) - millis() : disableReturn;
-        return (seconds == SECONDS) ? (result / 1000) : result;
-    }
-    
-    unsigned long timeSinceReset() {
-        unsigned long result = enabled ? (millis() - startTime) : disableReturn;
-        return (seconds == SECONDS) ? (result / 1000) : result;
-    }
-    
-    bool hasTriggered() {
-        if (enabled) return millis() - startTime >= duration;
-        else return false;
-    }
-    
-    bool hasNotTriggered() {
-        if (enabled) return millis() - startTime < duration;
-        else return false;
+    unsigned long remaining() { return enabled ? (startTime + duration) - millis() : disableReturn; }
+
+    unsigned long timeSinceReset() { return enabled ? (millis() - startTime) : disableReturn; }
+
+    bool hasTriggered() { return enabled ? ((millis() - startTime) >= duration) : false; }
+
+    bool hasNotTriggered() { return enabled ? ((millis() - startTime) < duration) : false; }
+
+    void addToTimerList() {
+        if ( firstTimer == nullptr ) {
+            firstTimer = currentTimer = this;
+        } else {
+            currentTimer->setNextTimer( this );
+            currentTimer = this;
+        }
+        this->setNextTimer( nullptr );
     }
 };
 
 void resetAllTimers() {
-    for( BlockNot* timer : BlockNot::timerList ) timer->reset() ; 
+    BlockNot* timer = BlockNot::firstTimer;
+    while( timer != nullptr ) {
+        timer->reset();
+        timer = timer->getNextTimer();
+    }
+
 }
 
-forward_list<BlockNot*> BlockNot::timerList ;
+BlockNot* BlockNot::firstTimer   = nullptr;
+BlockNot* BlockNot::currentTimer = nullptr;
 
 #endif
