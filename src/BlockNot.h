@@ -30,6 +30,8 @@
 #define SWAP_STATE       negateState()
 #define FLIP_STATE       negateState()
 #define ENABLED          isEnabled()
+#define SECONDS          true
+#define MILLISECONDS     false
 
 class BlockNot {
 public:
@@ -38,7 +40,7 @@ public:
     This library is very simple as libraries go. Each method in the library is described in README.md
     see: https://github.com/EasyG0ing1/BlockNot for complete documentation.
 */
-    static BlockNot* firstTimer;
+   	static BlockNot* firstTimer;
     static BlockNot* currentTimer;
 
     BlockNot() { 
@@ -58,25 +60,40 @@ public:
         addToTimerList();
     }
     
-
-    void setDuration(const unsigned long milliseconds, bool resetOption = WITH_RESET) {
+    BlockNot(unsigned long time, bool type) {
+        seconds = type;
+        duration = (seconds == SECONDS) ? (time * 1000) : time;
+        reset();
+        addToTimerList();
+    }
+    
+    BlockNot(unsigned long time, bool type, unsigned long disableReturnValue) {
+        seconds = type;
+        disableReturn = disableReturnValue;
+        duration = (seconds == SECONDS) ? (time * 1000) : time;
+        reset();
+        addToTimerList();
+    }
+    
+    
+    void setDuration(const unsigned long time, bool resetOption = WITH_RESET) {
         if (enabled) {
-            duration = milliseconds;
+            duration = (seconds == SECONDS) ? (time * 1000) : time;
             if (resetOption) reset();
         }
     };
-
-    void addTime(const unsigned long milliseconds, bool resetOption = NO_RESET) {
+    
+    void addTime(const unsigned long time, bool resetOption = NO_RESET) {
         if (enabled) {
-            const unsigned long newDuration = duration + milliseconds;
+            const unsigned long newDuration = duration + ((seconds == SECONDS) ? (time * 1000) : time);
             duration = newDuration;
             if (resetOption) reset();
         }
     }
-
-    void takeTime(const unsigned long milliseconds, bool resetOption = NO_RESET) {
+    
+    void takeTime(const unsigned long time, bool resetOption = NO_RESET) {
         if (enabled) {
-            long newDuration = duration - milliseconds;
+            long newDuration = duration - ((seconds == SECONDS) ? (time * 1000) : time);
             duration = newDuration > 0 ? newDuration : 0;
             if (resetOption) reset();
         }
@@ -106,7 +123,10 @@ public:
     
     unsigned long getTimeUntilTrigger() { return remaining(); }
     
-    unsigned long getDuration() { return enabled ? duration : disableReturn; }
+    unsigned long getDuration() {
+        unsigned long thisDuration = (seconds == SECONDS) ? (duration / 1000) : duration;
+        return enabled ? thisDuration : disableReturn;
+    }
     
     unsigned long timeSinceLastReset() { return timeSinceReset(); }
     
@@ -131,8 +151,6 @@ private:
     /*
      * Private methods and variables used by the library, All calculations happen here.
      */
-    unsigned long zero = 0;
-
     unsigned long duration = 0;
 
     unsigned long startTime = 0;
@@ -143,20 +161,34 @@ private:
 
     bool onceTriggered = false;
 
+    bool seconds = false;
+
     BlockNot* nextTimer;
-    
+
     void resetTimer() {
         startTime = enabled ? millis() : startTime;
-        onceTriggered = enabled ? false : onceTriggered;
+        if (enabled) onceTriggered = false;
     }
-    
-    unsigned long remaining() { return enabled ? (startTime + duration) - millis() : disableReturn; }
 
-    unsigned long timeSinceReset() { return enabled ? (millis() - startTime) : disableReturn; }
+    unsigned long remaining() {
+        unsigned long result =  enabled ? (startTime + duration) - millis() : disableReturn;
+        return (seconds == SECONDS) ? (result / 1000) : result;
+    }
 
-    bool hasTriggered() { return enabled ? ((millis() - startTime) >= duration) : false; }
+    unsigned long timeSinceReset() {
+        unsigned long result = enabled ? (millis() - startTime) : disableReturn;
+        return (seconds == SECONDS) ? (result / 1000) : result;
+    }
 
-    bool hasNotTriggered() { return enabled ? ((millis() - startTime) < duration) : false; }
+    bool hasTriggered() {
+        if (enabled) return millis() - startTime >= duration;
+        else return false;
+    }
+
+    bool hasNotTriggered() {
+        if (enabled) return millis() - startTime < duration;
+        else return false;
+    }
 
     void addToTimerList() {
         if ( firstTimer == nullptr ) {
@@ -167,15 +199,15 @@ private:
         }
         this->setNextTimer( nullptr );
     }
+
 };
 
 void resetAllTimers() {
     BlockNot* timer = BlockNot::firstTimer;
     while( timer != nullptr ) {
-        timer->reset();
-        timer = timer->getNextTimer();
+        timer->BlockNot::reset();
+        timer = timer->BlockNot::getNextTimer();
     }
-
 }
 
 BlockNot* BlockNot::firstTimer   = nullptr;
