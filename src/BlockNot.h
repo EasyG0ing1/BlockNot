@@ -136,8 +136,6 @@ private:
     /*
      * Private methods and variables used by the library, All calculations happen here.
      */
-    unsigned long zero = 0;
-    
     unsigned long duration = 0;
     
     unsigned long startTime = 0;
