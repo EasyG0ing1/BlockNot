@@ -40,7 +40,7 @@ public:
     This library is very simple as libraries go. Each method in the library is described in README.md
     see: https://github.com/EasyG0ing1/BlockNot for complete documentation.
 */
-   	static BlockNot* firstTimer;
+    static BlockNot* firstTimer;
     static BlockNot* currentTimer;
 
     BlockNot() { 
