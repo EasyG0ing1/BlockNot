@@ -260,7 +260,7 @@ Thank you for your interest in BlockNot. I hope you find it as invaluable in you
 sims.mike@gmail.com
 
 ## Vresion Update Notes
-### 1.6.4
+### 1.6.5
 
 - **SECONDS Mode** - Sometimes we only need to work with secons, which makes it pain in the rear to constantly have to work with numbers in the thousands because everything is in milliseconds. SO NOW, if you need to work just with whole seconds, you can declare that your timer is a SECONDS timer when you create it, like this:
 
