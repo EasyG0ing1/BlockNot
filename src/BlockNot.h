@@ -54,14 +54,14 @@ public:
     BlockNot(unsigned long time, bool type) {
         seconds = type;
         duration = (seconds == SECONDS) ? (time * 1000) : time;
-        reset;
+        reset();
     }
     
     BlockNot(unsigned long time, bool type, unsigned long disableReturnValue) {
         seconds = type;
         disableReturn = disableReturnValue;
         duration = (seconds == SECONDS) ? (time * 1000) : time;
-        reset;
+        reset();
     }
     
     
