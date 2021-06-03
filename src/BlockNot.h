@@ -1,8 +1,8 @@
-#include <Arduino.h>
-
 #ifndef BlockNot_h
 #define BlockNot_h
 #pragma once
+
+#include <Arduino.h>
 
 #define WITH_RESET true
 #define NO_RESET false
@@ -40,21 +40,36 @@ public:
     This library is very simple as libraries go. Each method in the library is described in README.md
     see: https://github.com/EasyG0ing1/BlockNot for complete documentation.
 */
+    static BlockNot* firstTimer;
+    static BlockNot* currentTimer;
+
+    BlockNot() { 
+        addToTimerList();
+    }
+
+    BlockNot(bool type) { 
+        seconds = type;
+        addToTimerList();
+    }
+
     BlockNot(unsigned long milliseconds) {
         duration = milliseconds;
         reset();
+        addToTimerList();
     }
-    
+
     BlockNot(unsigned long milliseconds, unsigned long disableReturnValue) {
         duration = milliseconds;
         disableReturn = disableReturnValue;
         reset();
+        addToTimerList();
     }
     
     BlockNot(unsigned long time, bool type) {
         seconds = type;
         duration = (seconds == SECONDS) ? (time * 1000) : time;
         reset();
+        addToTimerList();
     }
     
     BlockNot(unsigned long time, bool type, unsigned long disableReturnValue) {
@@ -62,6 +77,7 @@ public:
         disableReturn = disableReturnValue;
         duration = (seconds == SECONDS) ? (time * 1000) : time;
         reset();
+        addToTimerList();
     }
     
     
@@ -87,8 +103,8 @@ public:
             if (resetOption) reset();
         }
     }
-    
-    boolean triggered(bool resetOption = true) {
+
+    bool triggered(bool resetOption = true) {
         bool triggered = hasTriggered();
         if (resetOption && triggered) {
             reset();
@@ -96,9 +112,9 @@ public:
         return triggered;
     }
     
-    boolean notTriggered() { return hasNotTriggered(); }
+    bool notTriggered() { return hasNotTriggered(); }
     
-    boolean firstTrigger() {
+    bool firstTrigger() {
         if (hasTriggered() && !onceTriggered) {
             onceTriggered = true;
             return true;
@@ -106,7 +122,7 @@ public:
         return false;
     }
     
-    boolean isEnabled() {
+    bool isEnabled() {
         return enabled;
     }
     
@@ -131,47 +147,75 @@ public:
     
     void reset() { resetTimer(); }
 
+    void setNextTimer( BlockNot* timer ) { nextTimer = timer; }
+
+    BlockNot* getNextTimer() { return nextTimer; }
+
 private:
     
     /*
      * Private methods and variables used by the library, All calculations happen here.
      */
     unsigned long duration = 0;
-    
+
     unsigned long startTime = 0;
-    
+
     unsigned long disableReturn = 0;
-    
+
     bool enabled = true;
-    
+
     bool onceTriggered = false;
-    
+
     bool seconds = false;
-    
+
+    BlockNot* nextTimer;
+
     void resetTimer() {
         startTime = enabled ? millis() : startTime;
         if (enabled) onceTriggered = false;
     }
-    
+
     unsigned long remaining() {
         unsigned long result =  enabled ? (startTime + duration) - millis() : disableReturn;
         return (seconds == SECONDS) ? (result / 1000) : result;
     }
-    
+
     unsigned long timeSinceReset() {
         unsigned long result = enabled ? (millis() - startTime) : disableReturn;
         return (seconds == SECONDS) ? (result / 1000) : result;
     }
-    
+
     bool hasTriggered() {
         if (enabled) return millis() - startTime >= duration;
         else return false;
     }
-    
+
     bool hasNotTriggered() {
         if (enabled) return millis() - startTime < duration;
         else return false;
     }
+
+    void addToTimerList() {
+        if ( firstTimer == nullptr ) {
+            firstTimer = currentTimer = this;
+        } else {
+            currentTimer->setNextTimer( this );
+            currentTimer = this;
+        }
+        this->setNextTimer( nullptr );
+    }
+
 };
+
+void resetAllTimers() {
+    BlockNot* timer = BlockNot::firstTimer;
+    while( timer != nullptr ) {
+        timer->BlockNot::reset();
+        timer = timer->BlockNot::getNextTimer();
+    }
+}
+
+BlockNot* BlockNot::firstTimer   = nullptr;
+BlockNot* BlockNot::currentTimer = nullptr;
 
 #endif
