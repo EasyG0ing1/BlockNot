@@ -267,7 +267,7 @@ sims.mike@gmail.com
 ## Version Update Notes
 ### 1.6.6
 - **Reset ALL timers** with a single command - resetAllTimers();<BR>
-Thank you @bizprof for contributing to the project.
+Thank you [@bizprof](https://github.com/bizprof) for contributing to the project.
 
 ### 1.6.5
 
