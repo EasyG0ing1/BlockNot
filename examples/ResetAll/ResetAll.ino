@@ -6,7 +6,7 @@ BlockNot timer3( 7500 );
 
 BlockNot myReset   (30, SECONDS);  // Timer to trigger reset of all timers every 30s
 
-unsigned long startTime = millis();   // To count seconds independent of timers
+unsigned long startTime;   // To count seconds independent of timers
 
 void printTimers() {
     String heading = "Timer\tDuration\tUnits\n-------------------------";
@@ -31,7 +31,8 @@ void setup() {
     Serial.println(F("READY!\n"));
     delay(1000);
     printTimers();
-    resetAllTimers();
+    startTime = millis();
+    resetAllTimers(startTime);
 }
 
 void loop()
@@ -49,9 +50,9 @@ void loop()
     }
     
     if (myReset.TRIGGERED) {
-        printTime(&myReset);
+//        printTime(&myReset);
         Serial.println(F("\n\n---- Reset all timers ----"));
-        resetAllTimers();
+        resetAllTimers(myReset.getStartTime());
     }
     
     delay(10);
