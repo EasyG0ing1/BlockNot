@@ -5,10 +5,10 @@
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
-WITH_RESET	KEYWORD1
-NO_RESET	KEYWORD1
-SECONDS	KEYWORD1
-MILLISECONDS	KEYWORD1
+WITH_RESET  KEYWORD1
+NO_RESET    KEYWORD1
+SECONDS KEYWORD1
+MILLISECONDS    KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -18,16 +18,20 @@ setDuration	KEYWORD2
 addTime	KEYWORD2
 takeTime	KEYWORD2
 triggered	KEYWORD2
+triggeredOnDuration	KEYWORD2
 notTriggered	KEYWORD2
+firstTrigger	KEYWORD2
 getTimeUntilTrigger	KEYWORD2
+getStartTime	KEYWORD2
 getDuration	KEYWORD2
 timeSinceLastReset	KEYWORD2
-firstTrigger	KEYWORD2
-reset	KEYWORD2
+setDisableReturnValue KEYWORD2
 enable	KEYWORD2
 disable	KEYWORD2
 isEnabled	KEYWORD2
 resetAllTimers KEYWORD2
+negateState KEYWORD2
+reset	KEYWORD2
 
 ######################################
 # Instances (KEYWORD2)
