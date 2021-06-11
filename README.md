@@ -46,7 +46,7 @@ This is a simple graph showing you how BlockNot timers work. Keep in mind, that 
 
 ## The Trigger
 
-BlockNot is all about the trigger event. Picture someone standing there holding a gun pointed towards the sky, and they have been instructed to pull the trigger on the gun every 10 seconds.  Now you know what a trigger event is. It is that moment in time when the timers duration has come to pass. You set the duration when you create your timers. You can also change the duration in an existing timer by setting it to a new value, or by adding / subtracting time to the timers current duration. More about that in the method descriptions.
+BlockNot is all about the trigger event. Picture someone standing there holding a gun pointed towards the sky, and they have been instructed to pull the trigger on the gun every 10 baseUnits.  Now you know what a trigger event is. It is that moment in time when the timers duration has come to pass. You set the duration when you create your timers. You can also change the duration in an existing timer by setting it to a new value, or by adding / subtracting time to the timers current duration. More about that in the method descriptions.
 
 Chances are, you will use this library more often than not, by simply checking the timers trigger, then run some code if the trigger event has transpired.
 ```C++  
@@ -89,11 +89,11 @@ myTimer.RESET;
 ```  
 The simplicity of that kind of method and what it allows you to do in a single line of code cannot be over stated. Using **one line of code**, you can do a single trigger event consisting of anything at all!
 
-Why would you need to do that? There are countless scenarios where that would be immediately useful. For example, I've used it with stepper motor projects where I want an idle stepper motor to be completely cut off from any voltage when it's been idle for a defined length of time ... lets say 25 seconds.
+Why would you need to do that? There are countless scenarios where that would be immediately useful. For example, I've used it with stepper motor projects where I want an idle stepper motor to be completely cut off from any voltage when it's been idle for a defined length of time ... lets say 25 baseUnits.
 
 So first, we define the timer
 ```C++  
-BlockNot stepperSleepTimer (25000); // 25 seconds  
+BlockNot stepperSleepTimer (25000); // 25 baseUnits  
 ```  
 Then in the code that we use to cause a stepper to actually turn, we add into it the resetting of this sleep timer like this:
 ```C++  
@@ -104,7 +104,7 @@ Then, in your loop, you would put something like this:
 if (stepperSleepTimer.ONE_TRIGGER) {  
  sleepStepper();}  
 ```  
-So that if the stepper hasn't moved in the last 25 seconds, it will be put to sleep and that sleep routine won't be constantly run over and over again. Yet when the stepper is engaged again, then that sleep timer gets reset.
+So that if the stepper hasn't moved in the last 25 baseUnits, it will be put to sleep and that sleep routine won't be constantly run over and over again. Yet when the stepper is engaged again, then that sleep timer gets reset.
 
 BlockNot makes it easy for you to establish single trigger events, without ever needing to rely on the Delay method. Spend your efforts working on the core of your project and let BlockNot handle your timing needs.
 
@@ -196,7 +196,7 @@ If you have a nano or an uno or equivalent laying around and four LEDs and some 
 #### Non-Blocking MATTERS!
 
 #### TimersRules
-This sketch has SIX timers created and running at the same time. There are various things happening at the trigger event of each timer. The expected behavior is explained in the out Strings to Serial. Read them, then let it run for a minute or so then stop your Serial monitor and look at the output. You should be able to look at the number of seconds that is given in each output, and compare the differences with the expected behavior and see that everything runs as it is expected to run.<BR><BR>For example, when LiteTimer triggers, you should soon after that see the output from stopAfterThreeTimer.  When you look at the number of seconds in each of their outputs, you can see that indeed it does trigger three seconds after being reset, but then it does not re-trigger until after it is reset again.  
+This sketch has SIX timers created and running at the same time. There are various things happening at the trigger event of each timer. The expected behavior is explained in the out Strings to Serial. Read them, then let it run for a minute or so then stop your Serial monitor and look at the output. You should be able to look at the number of baseUnits that is given in each output, and compare the differences with the expected behavior and see that everything runs as it is expected to run.<BR><BR>For example, when LiteTimer triggers, you should soon after that see the output from stopAfterThreeTimer.  When you look at the number of baseUnits in each of their outputs, you can see that indeed it does trigger three baseUnits after being reset, but then it does not re-trigger until after it is reset again.  
  
 #### ResetAll
 This sketch shows how all BlockNot timers defined in the program can be reset with a single line of code, rather than having to call reset() for each and every one separately. This comes in handy when all timers need to be reset at once, e.g. after the system clock has been adjusted from an external source (NTP or RTC, for example).
@@ -265,19 +265,21 @@ Thank you for your interest in BlockNot. I hope you find it as invaluable in you
 sims.mike@gmail.com
 
 ## Version Update Notes
+### 1.6.7
+- **Bug Fix** Fixed bug where declaring the timer with the time duration alone would not compile.<BR>
 ### 1.6.6
 - **Reset ALL timers** with a single command - resetAllTimers();<BR>
 Thank you [@bizprof](https://github.com/bizprof) for contributing to the project.
 
 ### 1.6.5
 
-- **SECONDS Mode** - Sometimes we only need to work with secons, which makes it pain in the rear to constantly have to work with numbers in the thousands because everything is in milliseconds. SO NOW, if you need to work just with whole seconds, you can declare that your timer is a SECONDS timer when you create it, like this:
+- **SECONDS Mode** - Sometimes we only need to work with secons, which makes it pain in the rear to constantly have to work with numbers in the thousands because everything is in milliseconds. SO NOW, if you need to work just with whole baseUnits, you can declare that your timer is a SECONDS timer when you create it, like this:
 
  ```C++
  BlockNot myTimer(5, SECONDS);
  ```
-Once the timer is established as a SECONDS timer, then any changes you make to it such as adding or removing time, or even setting the duration to a new number, must be done in seconds, not milliseconds.<BR><BR>
-All time calculations under the hood continue to happen in milisecond units, I just included the proper math so that those units are converted from seconds to miliseconds and back on all related methods.<BR><BR>
+Once the timer is established as a SECONDS timer, then any changes you make to it such as adding or removing time, or even setting the duration to a new number, must be done in baseUnits, not milliseconds.<BR><BR>
+All time calculations under the hood continue to happen in milisecond units, I just included the proper math so that those units are converted from baseUnits to miliseconds and back on all related methods.<BR><BR>
 Therefore, any methods that you use which return a length of time such as getDuration() etc., will be first calculated using miliseconds, then divided by 1,000 and returned to you, so however C++ rounds those numbers is how you will get them back. But when you're dealing with whole second timers, then fractional second precision should be irrelevant to you. If it matters, then don't use a SECONDS timer.
 
 > Written with [StackEdit](https://stackedit.io/).

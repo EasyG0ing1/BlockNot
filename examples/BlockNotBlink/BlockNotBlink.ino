@@ -4,7 +4,7 @@ BlockNot blinkTimer(100);
 boolean state = false;
 
 void setup() {
-  pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(LED_BUILTIN, OUTPUT);
 }
 
 void loop() {
@@ -17,7 +17,7 @@ and simplicity.
     
     if (blinkTimer.TRIGGERED) {
         state = !state;
-        digitalWrite(LED_BUILTIN, (state ? HIGH : LOW))
+        digitalWrite(LED_BUILTIN, (state ? HIGH : LOW));
     }
-
+    
 }

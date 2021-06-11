@@ -16,6 +16,7 @@
 #define REMAINING        getTimeUntilTrigger()
 #define DURATION         getDuration()
 #define DONE             triggered()
+#define GET_UNITS        getUnits()
 #define TRIGGERED        triggered()
 #define DONE_NO_RESET    triggered(NO_RESET)
 #define HAS_TRIGGERED    triggered(NO_RESET)
@@ -47,13 +48,9 @@ public:
         addToTimerList();
     }
 
-    BlockNot(bool type) { 
-        seconds = type;
-        addToTimerList();
-    }
-
-    BlockNot(unsigned long milliseconds) {
-        duration = milliseconds;
+    BlockNot(unsigned long time, bool units = MILLISECONDS) {
+        baseUnits = units;
+        duration = (baseUnits == SECONDS) ? (time * 1000) : time;
         reset();
         addToTimerList();
     }
@@ -65,17 +62,10 @@ public:
         addToTimerList();
     }
     
-    BlockNot(unsigned long time, bool type) {
-        seconds = type;
-        duration = (seconds == SECONDS) ? (time * 1000) : time;
-        reset();
-        addToTimerList();
-    }
-    
-    BlockNot(unsigned long time, bool type, unsigned long disableReturnValue) {
-        seconds = type;
+    BlockNot(unsigned long time, bool units, unsigned long disableReturnValue) {
+        baseUnits = units;
         disableReturn = disableReturnValue;
-        duration = (seconds == SECONDS) ? (time * 1000) : time;
+        duration = (baseUnits == SECONDS) ? (time * 1000) : time;
         reset();
         addToTimerList();
     }
@@ -83,14 +73,14 @@ public:
     
     void setDuration(const unsigned long time, bool resetOption = WITH_RESET) {
         if (enabled) {
-            duration = (seconds == SECONDS) ? (time * 1000) : time;
+            duration = (baseUnits == SECONDS) ? (time * 1000) : time;
             if (resetOption) reset();
         }
     };
     
     void addTime(const unsigned long time, bool resetOption = NO_RESET) {
         if (enabled) {
-            const unsigned long newDuration = duration + ((seconds == SECONDS) ? (time * 1000) : time);
+            const unsigned long newDuration = duration + ((baseUnits == SECONDS) ? (time * 1000) : time);
             duration = newDuration;
             if (resetOption) reset();
         }
@@ -98,7 +88,7 @@ public:
     
     void takeTime(const unsigned long time, bool resetOption = NO_RESET) {
         if (enabled) {
-            long newDuration = duration - ((seconds == SECONDS) ? (time * 1000) : time);
+            long newDuration = duration - ((baseUnits == SECONDS) ? (time * 1000) : time);
             duration = newDuration > 0 ? newDuration : 0;
             if (resetOption) reset();
         }
@@ -129,8 +119,12 @@ public:
     unsigned long getTimeUntilTrigger() { return remaining(); }
     
     unsigned long getDuration() {
-        unsigned long thisDuration = (seconds == SECONDS) ? (duration / 1000) : duration;
+        unsigned long thisDuration = (baseUnits == SECONDS) ? (duration / 1000) : duration;
         return enabled ? thisDuration : disableReturn;
+    }
+    
+    String getUnits() {
+        return baseUnits == SECONDS ? "Seconds" : "Milliseconds";
     }
     
     unsigned long timeSinceLastReset() { return timeSinceReset(); }
@@ -166,7 +160,7 @@ private:
 
     bool onceTriggered = false;
 
-    bool seconds = false;
+    bool baseUnits = MILLISECONDS;
 
     BlockNot* nextTimer;
 
@@ -177,12 +171,12 @@ private:
 
     unsigned long remaining() {
         unsigned long result =  enabled ? (startTime + duration) - millis() : disableReturn;
-        return (seconds == SECONDS) ? (result / 1000) : result;
+        settleUnits(result);
     }
 
     unsigned long timeSinceReset() {
         unsigned long result = enabled ? (millis() - startTime) : disableReturn;
-        return (seconds == SECONDS) ? (result / 1000) : result;
+        settleUnits(result);
     }
 
     bool hasTriggered() {
@@ -203,6 +197,10 @@ private:
             currentTimer = this;
         }
         this->setNextTimer( nullptr );
+    }
+    
+    unsigned long settleUnits(unsigned long input) {
+        return ((baseUnits == SECONDS) ? input / 1000 : input);
     }
 
 };
