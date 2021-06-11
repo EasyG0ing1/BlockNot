@@ -4,8 +4,10 @@
 
 #include <Arduino.h>
 
-#define WITH_RESET true
-#define NO_RESET false
+#define WITH_RESET      true
+#define NO_RESET        false
+#define SECONDS         true
+#define MILLISECONDS    false
 
 //Macros - their usage and significance is described in README.md
 
@@ -33,8 +35,6 @@
 #define FLIP                    negateState()
 #define SWAP_STATE              negateState()
 #define FLIP_STATE              negateState()
-#define SECONDS                 true
-#define MILLISECONDS            false
 
 class BlockNot {
 public:
