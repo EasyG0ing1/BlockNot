@@ -65,7 +65,7 @@ public:
     BlockNot(unsigned long time, bool units, unsigned long disableReturnValue) {
         baseUnits = units;
         disableReturn = disableReturnValue;
-        duration = (baseUnits == SECONDS) ? (time * 1000) : time;
+        duration = convertUnitsSet( time );
         reset();
         addToTimerList();
     }
@@ -73,14 +73,14 @@ public:
     
     void setDuration(const unsigned long time, bool resetOption = WITH_RESET) {
         if (enabled) {
-            duration = (baseUnits == SECONDS) ? (time * 1000) : time;
+            duration = convertUnitsSet( time );
             if (resetOption) reset();
         }
     };
     
     void addTime(const unsigned long time, bool resetOption = NO_RESET) {
         if (enabled) {
-            const unsigned long newDuration = duration + ((baseUnits == SECONDS) ? (time * 1000) : time);
+            const unsigned long newDuration = duration + convertUnitsSet( time );
             duration = newDuration;
             if (resetOption) reset();
         }
@@ -88,7 +88,7 @@ public:
     
     void takeTime(const unsigned long time, bool resetOption = NO_RESET) {
         if (enabled) {
-            long newDuration = duration - ((baseUnits == SECONDS) ? (time * 1000) : time);
+            long newDuration = duration - convertUnitsSet( time );
             duration = newDuration > 0 ? newDuration : 0;
             if (resetOption) reset();
         }
@@ -97,7 +97,7 @@ public:
     bool triggered(bool resetOption = true) {
         bool triggered = hasTriggered();
         if (resetOption && triggered) {
-            reset();
+            reset( startTime + duration );
         }
         return triggered;
     }
@@ -117,9 +117,11 @@ public:
     }
     
     unsigned long getTimeUntilTrigger() { return remaining(); }
-    
+
+    unsigned long getStartTime() { return startTime; }
+
     unsigned long getDuration() {
-        unsigned long thisDuration = (baseUnits == SECONDS) ? (duration / 1000) : duration;
+        unsigned long thisDuration = convertUnitsGet( duration );
         return enabled ? thisDuration : disableReturn;
     }
     
@@ -139,9 +141,7 @@ public:
     
     void negateState() { enabled = !enabled; }
     
-    void reset() { resetTimer(); }
-
-    void setNextTimer( BlockNot* timer ) { nextTimer = timer; }
+    void reset( const unsigned long newStartTime = millis() ) { resetTimer( newStartTime ); }
 
     BlockNot* getNextTimer() { return nextTimer; }
 
@@ -164,19 +164,31 @@ private:
 
     BlockNot* nextTimer;
 
-    void resetTimer() {
-        startTime = enabled ? millis() : startTime;
-        if (enabled) onceTriggered = false;
+    void setNextTimer( BlockNot* timer ) { nextTimer = timer; }
+
+    unsigned long convertUnitsSet( const unsigned long timeValue ) {
+        return (baseUnits == SECONDS) ? (timeValue * 1000) : timeValue;
+    }
+
+    unsigned long convertUnitsGet( const unsigned long timeValue ) {
+        return (baseUnits == SECONDS) ? (timeValue / 1000) : timeValue;
+    }
+
+    void resetTimer( const unsigned long newStartTime ) {
+        if (enabled) {
+            startTime = newStartTime;
+            onceTriggered = false;
+        }
     }
 
     unsigned long remaining() {
         unsigned long result =  enabled ? (startTime + duration) - millis() : disableReturn;
-        settleUnits(result);
+        return convertUnitsGet( result );
     }
 
     unsigned long timeSinceReset() {
         unsigned long result = enabled ? (millis() - startTime) : disableReturn;
-        settleUnits(result);
+        return convertUnitsGet( result );
     }
 
     bool hasTriggered() {
@@ -205,10 +217,10 @@ private:
 
 };
 
-void resetAllTimers() {
+void resetAllTimers( const unsigned long newStartTime = millis() ) {
     BlockNot* timer = BlockNot::firstTimer;
     while( timer != nullptr ) {
-        timer->BlockNot::reset();
+        timer->BlockNot::reset( newStartTime );
         timer = timer->BlockNot::getNextTimer();
     }
 }
