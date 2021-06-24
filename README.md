@@ -6,9 +6,21 @@
 ## Getting started immediately
 Here is an example of BlockNot's easiest and most common usage:
 
-```C++ #include <BlockNot.h>   
+```C++ 
+#include <BlockNot.h>   
 BlockNot myTimer(1300);    
  
+void loop() {    
+   if (myTimer.TRIGGERED) {  
+      Serial.println("Hello World!"); 
+   } 
+} 
+ ``` 
+**OR**
+```C++ 
+#include <BlockNot.h>   
+BlockNot myTimer(15, SECONDS);    
+
 void loop() {    
    if (myTimer.TRIGGERED) {  
       Serial.println("Hello World!"); 
