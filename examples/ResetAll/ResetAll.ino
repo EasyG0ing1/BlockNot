@@ -54,7 +54,7 @@ void loop()
         printTime(3);
     }
     
-    if (resetTimer.TRIGGERED) {
+    if (resetTimer.TRIGGERED_ON_DURATION) {
         Serial.println(F("\n\n---- Reset all timers ----\n"));
         RESET_TIMERS;
     }
