@@ -6,28 +6,25 @@
 ## Getting started immediately
 Here is an example of BlockNot's easiest and most common usage:
 
+First, you crate the timer:
 ```C++ 
 #include <BlockNot.h>   
-BlockNot myTimer(1300);    
- 
-void loop() {    
-   if (myTimer.TRIGGERED) {  
-      Serial.println("Hello World!"); 
-   } 
-} 
- ``` 
-**OR**
-```C++ 
-#include <BlockNot.h>   
-BlockNot myTimer(15, SECONDS);    
+BlockNot myTimer(1300); //In Milliseconds    
+```
+**OR** 
 
+```C++ 
+#include <BlockNot.h>   
+BlockNot myTimer(15, SECONDS); //Whole Seconds    
+```
+Then, you just test it to see if it triggered.
+```C++
 void loop() {    
    if (myTimer.TRIGGERED) {  
       Serial.println("Hello World!"); 
    } 
 } 
  ``` 
- 
  **YES, it's that simple!** But keep reading to learn about other features.  
   
     
