@@ -42,8 +42,6 @@ public:
     This library is very simple as libraries go. Each method in the library is described in README.md
     see: https://github.com/EasyG0ing1/BlockNot for complete documentation.
 */
-    static BlockNot* firstTimer;
-    static BlockNot* currentTimer;
 
     BlockNot() { 
         addToTimerList();
@@ -147,7 +145,8 @@ public:
         resetTimer( newStartTime );
     }
 
-    BlockNot* getNextTimer() { return nextTimer; }
+    static BlockNot* getFirstTimer() { return firstTimer; }
+    BlockNot* getNextTimer()         { return nextTimer; }
 
 private:
     /*
@@ -165,9 +164,11 @@ private:
 
     bool baseUnits = MILLISECONDS;
 
+    static BlockNot* firstTimer;
+    static BlockNot* currentTimer;
     BlockNot* nextTimer;
 
-void resetTimer( const unsigned long newStartTime ) {
+    void resetTimer( const unsigned long newStartTime ) {
         if (timerEnabled) {
             startTime = newStartTime;
             onceTriggered = false;
@@ -204,22 +205,23 @@ void resetTimer( const unsigned long newStartTime ) {
         if ( firstTimer == nullptr ) {
             firstTimer = currentTimer = this;
         } else {
-            currentTimer->setNextTimer( this );
+            currentTimer->nextTimer = this;
             currentTimer = this;
         }
-        this->setNextTimer( nullptr );
+        this->nextTimer = nullptr;
     }
 
-    void setNextTimer( BlockNot* timer ) { nextTimer = timer; }
 };
 
 void resetAllTimers( const unsigned long newStartTime = millis() ) {
-    BlockNot* timer = BlockNot::firstTimer;
+    BlockNot* timer = BlockNot::getFirstTimer();
     while( timer != nullptr ) {
         timer->BlockNot::reset( newStartTime );
         timer = timer->BlockNot::getNextTimer();
     }
 }
+
+void resetAllTimers( BlockNot* timer ) { resetAllTimers( timer->BlockNot::getStartTime() ); }
 
 BlockNot* BlockNot::firstTimer   = nullptr;
 BlockNot* BlockNot::currentTimer = nullptr;
