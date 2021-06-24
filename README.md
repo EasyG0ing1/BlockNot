@@ -8,13 +8,12 @@ Here is an example of BlockNot's easiest and most common usage:
 
 ```C++ #include <BlockNot.h>   
 BlockNot myTimer(1300);    
- void loop() {    
  
+void loop() {    
    if (myTimer.TRIGGERED) {  
       Serial.println("Hello World!"); 
    } 
-      
- } 
+} 
  ``` 
  
  **YES, it's that simple!** But keep reading to learn about other features.  
