@@ -299,6 +299,8 @@ Thank you for your interest in BlockNot. I hope you find it as invaluable in you
 <BR>Mike Sims  
 sims.mike@gmail.com
 ## Version Update Notes
+### 1.7.1
+- Minor code enhancements that improves efficiency thanks to [@bizprof](https://github.com/bizprof)
 ### 1.7.0
 - Updated version to 1.7 - It just made sense to do a full step since the latest re-write, which includes cosmetic code changes as well as normalizing repetitive code, has been fairly substantial and it includes the new resetAllTimers() (RESET_TIMERS) method with its bug fixes.<BR>
 - **Bug Fix** - Fixed bug where invoking resetAllTimers() was causing an accumulated time drift fot all timers.<BR>
