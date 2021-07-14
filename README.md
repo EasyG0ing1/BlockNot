@@ -108,7 +108,7 @@ if (stepperSleepTimer.ONE_TRIGGER) {
 ```  
 So that if the stepper hasn't moved in the last 25 seconds, it will be put to sleep and that sleep routine won't be constantly run over and over again. Yet when the stepper is engaged again, then that sleep timer gets reset.
 
-##Reset All Timers
+## Reset All Timers
 
 Recently added to BlockNot is the ability to reset every timer that you have created all at once in a single line of code.
 
@@ -122,7 +122,7 @@ When you call this method, it first captures the value of millis() then it assig
 
 Read the description of the ResetAll example below for more info.
 
-##Seconds / Milliseconds
+## Seconds / Milliseconds
 
 Sometimes you only need to have timers that deal in full seconds, and it can be cumbersome to have to use numbers like 45000 for 45 seconds! As of version 1.6.5, you can now instantiate a timer with an optional argument to define it as a SECONDS timer like this:
 ```C++
@@ -130,7 +130,7 @@ BlockNot myTimer(5, SECONDS);
 ```
 When you define your timer as a SECONDS timer, any values you read from the timer will be in seconds even though under the hood, time is calculated in milliseconds. The response values will be rounded however the compiler handles that. Also, any changes you make to the timer's duration must be done in seconds (More discussion about this at the bottom of this document in the <b>Version Update Notes</b> section).
 
-##Enable / Disable
+## Enable / Disable
 
 You can enable or disable timer as needed (I will be adding stop and start methods into the next update).
 
@@ -153,7 +153,7 @@ These methods will do NOTHING if the timer is disabled. Meaning that the changes
 *    **takeTime()**
 *    **reset()**
 
-###How do I choose what number is returned on a disabled timer?
+### How do I choose what number is returned on a disabled timer?
 
 All you do is add your desired number when you create your timer like this
 ```C++  
@@ -258,7 +258,7 @@ Below you will find the name of each method in the library and any arguments tha
 *    **isEnabled()** - returns true or false depending on the current state of the timer.
 *    **resetAllTimers()** - loops through all timers that you created and resets startTime to millis(), which is recorded once and applied to all timers so they will all have the exact same startTime. 
 
-#Macros
+# Macros
 
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
 
@@ -331,7 +331,7 @@ Once the timer is established as a SECONDS timer, then any changes you make to i
 All time calculations under the hood continue to happen in millisecond units, I just included the proper math so that those units are converted from seconds to milliseconds and back on all related methods.<BR><BR>
 Therefore, any methods that you use which return a length of time such as getDuration() etc., will be first calculated using milliseconds, then divided by 1,000 and returned to you, so however C++ rounds those numbers is how you will get them back. But when you're dealing with whole second timers, then fractional second precision should be irrelevant to you. If it matters, then don't use a SECONDS timer.
 
-##Suggestions
+## Suggestions
 
 I welcome any and all suggestions for changes or improvements. You can either open an issue, or code the change yourself and create a pull request. This library is for all of us and making it the best it can be is important! 
 <BR><BR>You can also email me:<BR>sims.mike@gmail.com
