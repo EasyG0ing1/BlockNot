@@ -57,7 +57,7 @@ They both do the same thing, but in terms of readability, the second example is 
 
 This is a simple graph showing you how BlockNot timers work. Keep in mind, that what matters here is that from time point 0 until the duration has been reached, your program continues to run - doing other things. delay will not do that for you:
 
-![Graphical illustration of timer in action](https://i.imgur.com/Hxrjhvo.png)
+![Graphical illustration of timer in action](https://i.imgur.com/5HkKgTA.png)
 
 ## The Trigger
 
@@ -67,7 +67,7 @@ Chances are, you will use this library more often than not, by simply checking t
 ```C++  
 if (voltageReadTimer.TRIGGERED) {  
  readVoltage();}  
-```  
+```   
 ## The Reset
 
 Resetting a timer is critical to performing repeated events at the right intervals. Using the usual method of implementing non-blocking timers, you would first set a variable to the current millis()
