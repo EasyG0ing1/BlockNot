@@ -65,7 +65,8 @@ BlockNot is all about the trigger event. When runners get ready to start a race,
 
 ```C++  
 if (voltageReadTimer.TRIGGERED) {  
- readVoltage();}  
+    readVoltage();
+}  
 ```   
 ## The Reset
 
@@ -108,6 +109,7 @@ if (stepperSleepTimer.ONE_TRIGGER) {
 So that if the stepper hasn't moved in the last 25 seconds, it will be put to sleep and that sleep routine won't be constantly run over and over again. Yet when the stepper is engaged again, then that sleep timer gets reset.
 
 ##Reset All Timers
+
 Recently added to BlockNot is the ability to reset every timer that you have created all at once in a single line of code.
 
 You can do this by calling either the method or the macro:
@@ -121,6 +123,7 @@ When you call this method, it first captures the value of millis() then it assig
 Read the description of the ResetAll example below for more info.
 
 ##Seconds / Milliseconds
+
 Sometimes you only need to have timers that deal in full seconds, and it can be cumbersome to have to use numbers like 45000 for 45 seconds! As of version 1.6.5, you can now instantiate a timer with an optional argument to define it as a SECONDS timer like this:
 ```C++
 BlockNot myTimer(5, SECONDS);
@@ -128,6 +131,7 @@ BlockNot myTimer(5, SECONDS);
 When you define your timer as a SECONDS timer, any values you read from the timer will be in seconds even though under the hood, time is calculated in milliseconds. The response values will be rounded however the compiler handles that. Also, any changes you make to the timer's duration must be done in seconds (More discussion about this at the bottom of this document in the <b>Version Update Notes</b> section).
 
 ##Enable / Disable
+
 You can enable or disable timer as needed (I will be adding stop and start methods into the next update).
 
 When a timer is disabled, any call to the timer that would return a boolean value will ALWAYS return false. And when you query the timer where a numeric value is supposed to be returned, it will return a ZERO by default, although you can change what number it returns for those methods, as long as the number you set is a positive number (BlockNot does not ever deal with negative numbers, since time cannot go backwards),
@@ -150,6 +154,7 @@ These methods will do NOTHING if the timer is disabled. Meaning that the changes
 *    **reset()**
 
 ###How do I choose what number is returned on a disabled timer?
+
 All you do is add your desired number when you create your timer like this
 ```C++  
 BlockNot myTimer(2000, 8675309);  
@@ -210,18 +215,22 @@ There are more methods that allow you to affect change on your timers after inst
 There are currently four examples in the library.
 
 #### BlockNotBlink
+
 This sketch does the same thing as the famous blink sketch, only it does it with BlockNot elegance and style.
 
 
 #### BlockNotBlinkParty
+
 If you have a nano or an uno or equivalent laying around and four LEDs and some resistors, connect them to pins 9 - 12 and run this sketch. You will immediately see the benefit of non-blocking timers. You could never write a sketch that could do the same thing using the delay() command.  It would be impossible.
 
 <B>Non-Blocking MATTERS!</B>
 
 #### TimersRules
+
 This sketch has SIX timers created and running at the same time. There are various things happening at the trigger event of each timer. The expected behavior is explained in the out Strings to Serial. Read them, then let it run for a minute or so then stop your Serial monitor and look at the output. You should be able to look at the number of milliseconds that is given in each output, and compare the differences with the expected behavior and see that everything runs as it is expected to run.<BR><BR>For example, when LiteTimer triggers, you should soon after that see the output from stopAfterThreeTimer.  When you look at the number of milliseconds in each of their outputs, you can see that indeed it does trigger three seconds after being reset, but then it does not re-trigger until after it is reset again.
  
 #### ResetAll
+
 This sketch shows how all BlockNot timers defined in your sketch can be reset with a single line of code, rather than having to call reset() for each and every one separately. This comes in handy when all timers need to be reset at once, e.g. after the system clock has been adjusted from an external source (NTP or RTC, for example).
 
 <BR>These examples barely scratch the surface of what you can accomplish with BlockNot.
@@ -250,6 +259,7 @@ Below you will find the name of each method in the library and any arguments tha
 *    **resetAllTimers()** - loops through all timers that you created and resets startTime to millis(), which is recorded once and applied to all timers so they will all have the exact same startTime. 
 
 #Macros
+
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
 
 *    **TIME_PASSED** - timeSinceLastReset()
@@ -289,16 +299,24 @@ The only difference here, is that you cannot make a macro that applies universal
 Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.    
 <BR>Mike Sims  
 sims.mike@gmail.com
+
 ## Version Update Notes
 ### 1.7.1
+
 - Minor code enhancements that improves efficiency thanks to [@bizprof](https://github.com/bizprof)
+
 ### 1.7.0
+
 - Updated version to 1.7 - It just made sense to do a full step since the latest re-write, which includes cosmetic code changes as well as normalizing repetitive code, has been fairly substantial and it includes the new resetAllTimers() (RESET_TIMERS) method with its bug fixes.<BR>
 - **Bug Fix** - Fixed bug where invoking resetAllTimers() was causing an accumulated time drift fot all timers.<BR>
 - **triggeredOnDuration()** - method added so that when this method is called, the timer is reset by startTime + duration instead of using the current millis() value. This lets helps guarantee that the timer will only trigger exactly by the duration that you have set for the timer. That way, if you call a test for the timer being triggered and the time that you do the test is some time after the timer actually triggered, then it's new startTime will not include that extra time burned between the actual trigger time and the time when you called the test.<BR><BR> This will help you implement timers that trigger more accurately as long as your delays between the timer triggering and the time you test for the trigger are not consistently lapsed or else you will eventually run into the problem where the trigger will happen twice in a row ... run through the logic and think it through before you use this method.<BR><BR>The macro for calling this method is myTimer.TRIGGERED_ON_DURATION
+
 ### 1.6.7
+
 - **Bug Fix** - Fixed bug where declaring the timer with the time duration alone would not compile.<BR>
+
 ### 1.6.6
+
 - **Reset ALL timers** with a single command - resetAllTimers(); <b>OR</b> RESET_TIMERS;<BR> See the discussion above in the documentation for more details.<BR>
 Thank you [@bizprof](https://github.com/bizprof) for contributing this feature to the project.
 
@@ -314,5 +332,6 @@ All time calculations under the hood continue to happen in millisecond units, I 
 Therefore, any methods that you use which return a length of time such as getDuration() etc., will be first calculated using milliseconds, then divided by 1,000 and returned to you, so however C++ rounds those numbers is how you will get them back. But when you're dealing with whole second timers, then fractional second precision should be irrelevant to you. If it matters, then don't use a SECONDS timer.
 
 ##Suggestions
+
 I welcome any and all suggestions for changes or improvements. You can either open an issue, or code the change yourself and create a pull request. This library is for all of us and making it the best it can be is important! 
 <BR><BR>You can also email me:<BR>sims.mike@gmail.com
