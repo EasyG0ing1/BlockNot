@@ -10,7 +10,7 @@ void setup() {
 void loop() {
 
 /*
-Here, we can see how BlobkNot handles the 100ms 
+Here, we can see how BlockNot handles the 100ms
 time delay between LED state changes with ease 
 and simplicity.
 */

@@ -68,6 +68,11 @@ if (voltageReadTimer.TRIGGERED) {
     readVoltage();
 }  
 ```   
+
+As of version 1.7.0, we now have a new trigger method called <b>triggeredOnDuration()</b> ... 
+
+So, let's say that you have a 2300ms timer, and you call for the TRIGGERED event at 3000ms after the timers start time. Well, when you call TRIGGERED, the timers new startTime is whatever the current millis() value is, so by calling the timer long after its trigger event past, the time in between the event and your calling of the event is ignored. 
+
 ## The Reset
 
 Resetting a timer is critical to performing repeated events at the right intervals. However, there may be times when you don't want this behavior. 
@@ -130,37 +135,42 @@ BlockNot myTimer(5, SECONDS);
 ```
 When you define your timer as a SECONDS timer, any values you read from the timer will be in seconds even though under the hood, time is calculated in milliseconds. The response values will be rounded however the compiler handles that. Also, any changes you make to the timer's duration must be done in seconds (More discussion about this at the bottom of this document in the <b>Version Update Notes</b> section).
 
-## Enable / Disable
+## Start / Stop
 
-You can enable or disable timer as needed (I will be adding stop and start methods into the next update).
+You can stop a timer, then start it again as needed.
 
-When a timer is disabled, any call to the timer that would return a boolean value will ALWAYS return false. And when you query the timer where a numeric value is supposed to be returned, it will return a ZERO by default, although you can change what number it returns for those methods, as long as the number you set is a positive number (BlockNot does not ever deal with negative numbers, since time cannot go backwards),
+When a timer is stopped, any call to the timer that would return a boolean value will ALWAYS 
+return false. And when you query the timer where a numeric value is supposed to be returned, 
+it will return a ZERO by default, although you can change what number it returns for those 
+methods, as long as the number you set is a positive number (BlockNot does not ever deal with 
+negative numbers, since time cannot go backwards),
 
-These methods will ALWAYS return false when a timer is disabled (for macro calls see the Macro section of this document):
+These methods will ALWAYS return false when a timer is stopped (for macro calls see the Macro 
+section of this document):
 
 *    **triggered()**
 *    **notTriggered()**
 *    **firstTrigger()**
 
-These methods will return a ZERO by default when a timer is disabled, or whichever value you chose to get back (explained below).
+These methods will return a ZERO by default when a timer is stopped, or whichever value you chose to get back (explained below).
 *    **getDuration()**
 *    **getTimeUntilTrigger()**
 *    **timeSinceLastReset()**
 
-These methods will do NOTHING if the timer is disabled. Meaning that the changes you wish to make to the timer simply cannot be done if the timer is disabled - I am considering changing that behavior - if you think it needs to be changed, send me an email or open an incident.
+These methods will do NOTHING if the timer is stopped. Meaning that the changes you wish to make to the timer simply cannot be done if the timer is stopped - I am considering changing that behavior - if you think it needs to be changed, send me an email or open an incident.
 *    **setDuration()**
 *    **addTime()**
 *    **takeTime()**
 *    **reset()**
 
-### How do I choose what number is returned on a disabled timer?
+### How do I choose what number is returned on a stopped timer?
 
 All you do is add your desired number when you create your timer like this
 ```C++  
 BlockNot myTimer(2000, 8675309);  
 ```  
 
-The first number is the timers duration and the second number is the return value for the methods just mentioned above that return numeric values when the timer is disabled - 0 by default (Jenny's phone number in the example ;-). That second number CANNOT be a negative number and the compiler will throw an error if you pass it a negative number.
+The first number is the timers duration and the second number is the return value for the methods just mentioned above that return numeric values when the timer is stopped - 0 by default (Jenny's phone number in the example ;-). That second number CANNOT be a negative number and the compiler will throw an error if you pass it a negative number.
 
 OR, you can set it after the timer has been created
 ```C++
@@ -175,13 +185,13 @@ myTimer.disable();
 myTimer.DISABLE;  
 ```  
 
-And you can find out if the timer is enabled or disabled using either of these calls:
+And you can find out if the timer is started or stopped using either of these calls:
 ```C++  
 myTimer.isEnabled();  
 myTimer.ENABLED;  
 ```  
 
-You can also flip the state of the timer (if disabled, it will enable it, or if it's timerEnabled, it will disable it):
+You can also flip the state of the timer (if stopped, it will enable it, or if it's timerEnabled, it will disable it):
 ```C++  
 myTimer.negateState();  
 ```  
@@ -192,7 +202,7 @@ myTimer.SWAP;
 myTimer.FLIP_STATE;  
 myTimer.SWAP_STATE;  
 ```  
-Why would you want to just change the state with one line of code? Perhaps you have a toggle button that will toggle a timer to be enabled or disabled ... you can assign the one command to the button and everything is handled.
+Why would you want to just change the state with one line of code? Perhaps you have a toggle button that will toggle a timer to be started or stopped ... you can assign the one command to the button and everything is handled.
 
 ```C++  
 if (BUTTON_PRESSED) {  
@@ -235,6 +245,14 @@ This sketch shows how all BlockNot timers defined in your sketch can be reset wi
 
 <BR>These examples barely scratch the surface of what you can accomplish with BlockNot.
 
+#### OnWithOffTimers
+
+This example shows you how to use on and off timers to control anything that you need to have on for a certain length of time and also off for a certain length of time.
+
+The example specifically blinks two LEDs such that they will always be in sync every 6 seconds ... by this pattern:
+
+![](https://i.imgur.com/NU6PAQW.png)
+
 # Methods
 
 Below you will find the name of each method in the library and any arguments that it accepts. Below that list, you will find the names of the macros that are connected to each method along with the arguments that a given macro may or may not pass to the method. The macros are key to making your code simple.
@@ -255,6 +273,8 @@ Below you will find the name of each method in the library and any arguments tha
 *    **firstTrigger()** - Returns true only once and only after the timer has triggered.
 *    **enable()** - enables the timer. Timers are timerEnabled by default.
 *    **disable()** - disables the timer.
+*    **start()** - starts the timer (A new timer is created in the running state).
+*    **stop()** - stops the timer.
 *    **isEnabled()** - returns true or false depending on the current state of the timer.
 *    **resetAllTimers()** - loops through all timers that you created and resets startTime to millis(), which is recorded once and applied to all timers so they will all have the exact same startTime. 
 
@@ -280,6 +300,8 @@ Here are the macro terms and the methods that they call along with any arguments
 *    **RESET_TIMERS** - resetAllTimers()
 *    **ENABLE** - enable()
 *    **DISABLE** - disable()
+*    **START** - start()
+*    **STOP** - stop()
 *    **SWAP** - negateState()
 *    **FLIP** - negateState()
 *    **SWAP_STATE** - negateState()
@@ -301,6 +323,15 @@ Thank you for your interest in BlockNot. I hope you find it as invaluable in you
 sims.mike@gmail.com
 
 ## Version Update Notes
+### 1.7.2
+
+- Minor update
+  - Added start() method.
+  - Added stop() method. 
+  - Added **START** and **STOP** Macros. 
+  - Removed restrictions preventing changes to a timer when it is stopped (disabled). Changes made to a stopped timer will now work.
+
+
 ### 1.7.1
 
 - Minor code enhancements that improves efficiency thanks to [@bizprof](https://github.com/bizprof)
@@ -309,7 +340,7 @@ sims.mike@gmail.com
 
 - Updated version to 1.7 - It just made sense to do a full step since the latest re-write, which includes cosmetic code changes as well as normalizing repetitive code, has been fairly substantial and it includes the new resetAllTimers() (RESET_TIMERS) method with its bug fixes.<BR>
 - **Bug Fix** - Fixed bug where invoking resetAllTimers() was causing an accumulated time drift fot all timers.<BR>
-- **triggeredOnDuration()** - method added so that when this method is called, the timer is reset by startTime + duration instead of using the current millis() value. This lets helps guarantee that the timer will only trigger exactly by the duration that you have set for the timer. That way, if you call a test for the timer being triggered and the time that you do the test is some time after the timer actually triggered, then it's new startTime will not include that extra time burned between the actual trigger time and the time when you called the test.<BR><BR> This will help you implement timers that trigger more accurately as long as your delays between the timer triggering and the time you test for the trigger are not consistently lapsed or else you will eventually run into the problem where the trigger will happen twice in a row ... run through the logic and think it through before you use this method.<BR><BR>The macro for calling this method is myTimer.TRIGGERED_ON_DURATION
+- **triggeredOnDuration()** - method added so that when this method is called, the timer is reset by startTime + duration instead of using the current millis() value. This helps guarantee that the timer will only trigger exactly by the duration that you have set for the timer. That way, if you call a test for the timer being triggered and the time that you do the test is some time after the timer actually triggered, then it's new startTime will not include that extra time burned between the actual trigger time and the time when you called the test.<BR><BR> This will help you implement timers that trigger more accurately as long as your delays between the timer triggering and the time you test for the trigger are not consistently lapsed or else you will eventually run into the problem where the trigger will happen twice in a row ... run through the logic and think it through before you use this method.<BR><BR>The macro for calling this method is myTimer.TRIGGERED_ON_DURATION
 
 ### 1.6.7
 

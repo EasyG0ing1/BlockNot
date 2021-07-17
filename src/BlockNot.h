@@ -29,6 +29,8 @@
 #define RESET                   reset()
 #define RESET_TIMERS            resetAllTimers()
 #define ENABLE                  enable()
+#define STOP                    stop()
+#define START                   start()
 #define DISABLE                 disable()
 #define ENABLED                 isEnabled()
 #define SWAP                    negateState()
@@ -43,9 +45,7 @@ public:
     see: https://github.com/EasyG0ing1/BlockNot for complete documentation.
 */
 
-    BlockNot() { 
-        addToTimerList();
-    }
+    BlockNot() { addToTimerList(); }
 
     BlockNot(unsigned long time, bool units = MILLISECONDS) {
         baseUnits = units;
@@ -54,35 +54,29 @@ public:
         addToTimerList();
     }
 
-    BlockNot(unsigned long time, unsigned long disableReturnValue, bool units = MILLISECONDS) {
+    BlockNot(unsigned long time, unsigned long stoppedReturnValue, bool units = MILLISECONDS) {
         baseUnits = units;
-        timerDisabledReturnValue = disableReturnValue;
+        timerStoppedReturnValue = stoppedReturnValue;
         duration = convertUnitsSet( time );
         reset();
         addToTimerList();
     }
     
     void setDuration(const unsigned long time, bool resetOption = WITH_RESET) {
-        if (timerEnabled) {
-            duration = convertUnitsSet( time );
-            if (resetOption) reset();
-        }
+        duration = convertUnitsSet(time);
+        if (resetOption) reset();
     };
     
     void addTime(const unsigned long time, bool resetOption = NO_RESET) {
-        if (timerEnabled) {
-            const unsigned long newDuration = duration + convertUnitsSet( time );
-            duration = newDuration;
-            if (resetOption) reset();
-        }
+        const unsigned long newDuration = duration + convertUnitsSet(time);
+        duration = newDuration;
+        if (resetOption) reset();
     }
     
     void takeTime(const unsigned long time, bool resetOption = NO_RESET) {
-        if (timerEnabled) {
-            long newDuration = duration - convertUnitsSet( time );
-            duration = newDuration > 0 ? newDuration : 0;
-            if (resetOption) reset();
-        }
+        long newDuration = duration - convertUnitsSet(time);
+        duration = newDuration > 0 ? newDuration : 0;
+        if (resetOption) reset();
     }
 
     bool triggered(bool resetOption = true) {
@@ -90,7 +84,7 @@ public:
         if (resetOption && triggered) {
             reset();
         }
-        return triggered;
+        return timerEnabled ? triggered : false;
     }
     
     bool triggeredOnDuration() {
@@ -98,54 +92,47 @@ public:
         if (triggered) {
             reset(startTime + duration);
         }
-        return triggered;
+        return timerEnabled ? triggered : false;
     }
     
-    bool notTriggered() { return hasNotTriggered(); }
+    bool notTriggered() { return timerEnabled ? hasNotTriggered() : false; }
     
     bool firstTrigger() {
         if (hasTriggered() && !onceTriggered) {
             onceTriggered = true;
-            return true;
+            return timerEnabled ? true : false;
         }
         return false;
     }
     
-    bool isEnabled() {
-        return timerEnabled;
-    }
+    bool isEnabled() { return timerEnabled; }
     
-    unsigned long getTimeUntilTrigger() { return timerEnabled ? convertUnitsGet(remaining()) : timerDisabledReturnValue; }
+    unsigned long getTimeUntilTrigger() { return timerEnabled ? convertUnitsGet(remaining()) : timerStoppedReturnValue; }
 
     unsigned long getStartTime() { return startTime; }
 
-    unsigned long getDuration() {
-        return timerEnabled ? convertUnitsGet( duration ) : timerDisabledReturnValue;
-    }
+    unsigned long getDuration() { return timerEnabled ? convertUnitsGet( duration ) : timerStoppedReturnValue; }
     
-    String getUnits() {
-        return baseUnits == SECONDS ? "Seconds" : "Milliseconds";
-    }
+    String getUnits() { return baseUnits == SECONDS ? "Seconds" : "Milliseconds"; }
     
-    unsigned long timeSinceLastReset() {
-        return timerEnabled ? convertUnitsGet(timeSinceReset()) : timerDisabledReturnValue;
-    }
+    unsigned long timeSinceLastReset() { return timerEnabled ? convertUnitsGet(timeSinceReset()) : timerStoppedReturnValue; }
     
-    void setDisableReturnValue(unsigned long disableReturnValue) {
-        timerDisabledReturnValue = disableReturnValue;
-    }
-    
+    void setDisableReturnValue(unsigned long stoppedReturnValue) { timerStoppedReturnValue = stoppedReturnValue; }
+
+    void start() {enable();}
+
+    void stop() {disable();}
+
     void enable() { timerEnabled = true; }
     
     void disable() { timerEnabled = false; }
     
     void negateState() { timerEnabled = !timerEnabled; }
     
-    void reset( const unsigned long newStartTime = millis() ) {
-        resetTimer( newStartTime );
-    }
+    void reset( const unsigned long newStartTime = millis() ) { resetTimer( newStartTime ); }
 
     static BlockNot* getFirstTimer() { return firstTimer; }
+
     BlockNot* getNextTimer()         { return nextTimer; }
 
 private:
@@ -156,7 +143,7 @@ private:
 
     unsigned long startTime = 0;
 
-    unsigned long timerDisabledReturnValue = 0;
+    unsigned long timerStoppedReturnValue = 0;
 
     bool timerEnabled = true;
 
@@ -169,10 +156,8 @@ private:
     BlockNot* nextTimer;
 
     void resetTimer( const unsigned long newStartTime ) {
-        if (timerEnabled) {
-            startTime = newStartTime;
-            onceTriggered = false;
-        }
+        startTime = newStartTime;
+        onceTriggered = false;
     }
     
     unsigned long remaining() {
@@ -183,23 +168,13 @@ private:
         return millis() - startTime;
     }
 
-    bool hasTriggered() {
-        if (timerEnabled) return timeSinceReset() >= duration;
-        else return false;
-    }
+    bool hasTriggered() { return timeSinceReset() >= duration; }
 
-    bool hasNotTriggered() {
-        if (timerEnabled) return timeSinceReset() < duration;
-        else return false;
-    }
+    bool hasNotTriggered() { return timeSinceReset() < duration; }
     
-    unsigned long convertUnitsSet( const unsigned long timeValue ) {
-        return (baseUnits == SECONDS) ? (timeValue * 1000) : timeValue;
-    }
+    unsigned long convertUnitsSet( const unsigned long timeValue ) { return (baseUnits == SECONDS) ? (timeValue * 1000) : timeValue; }
     
-    unsigned long convertUnitsGet( const unsigned long timeValue ) {
-        return (baseUnits == SECONDS) ? (timeValue / 1000) : timeValue;
-    }
+    unsigned long convertUnitsGet( const unsigned long timeValue ) { return (baseUnits == SECONDS) ? (timeValue / 1000) : timeValue; }
 
     void addToTimerList() {
         if ( firstTimer == nullptr ) {
