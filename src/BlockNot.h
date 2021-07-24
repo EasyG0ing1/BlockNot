@@ -161,11 +161,14 @@ private:
     }
     
     unsigned long remaining() {
-        return (startTime + duration) - millis();
+        long timePassed = timeSinceReset();
+        return (timePassed < duration) ? duration - timePassed : 0;
     }
 
-    unsigned long timeSinceReset() {
-        return millis() - startTime;
+    long timeSinceReset() {
+        long mils = millis();
+        if (startTime > mils) return mils + (0xFFFFFFFF - startTime);
+        return mils - startTime;
     }
 
     bool hasTriggered() { return timeSinceReset() >= duration; }

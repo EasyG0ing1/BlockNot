@@ -323,6 +323,11 @@ Thank you for your interest in BlockNot. I hope you find it as invaluable in you
 sims.mike@gmail.com
 
 ## Version Update Notes
+
+### 1.7.3
+- Minor update
+  - Now compatible with millis() value rollover back to zero every 49 days. 
+
 ### 1.7.2
 
 - Minor update
