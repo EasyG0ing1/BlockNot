@@ -88,11 +88,17 @@ public:
     }
     
     bool triggeredOnDuration() {
+        /**
+         * Sets the next startTime to the current millis less the amount of time that has passed since the Triggered event was supposed to happen.
+         * This keeps your timer triggering exactly every duration on the duration. The method getNewStartTime runs the calculation accounting
+         * for possible rollover in the millis() value.
+         */
         bool triggered = hasTriggered();
         if (triggered) {
-            reset(startTime + duration);
+            long elapsedTime = (long) timeSinceLastReset();
+            reset(getNewStartTime(duration - elapsedTime));
         }
-        return timerEnabled ? triggered : false;
+        return triggered;
     }
     
     bool notTriggered() { return timerEnabled ? hasNotTriggered() : false; }
@@ -139,6 +145,9 @@ private:
     /*
      * Private methods and variables used by the library, All calculations happen here.
      */
+
+    unsigned long maxMillis = 0xFFFFFFFF;
+
     unsigned long duration = 0;
 
     unsigned long startTime = 0;
@@ -165,9 +174,20 @@ private:
         return (timePassed < duration) ? duration - timePassed : 0;
     }
 
+    unsigned long getNewStartTime(long offset, unsigned long now = millis()) {
+        long newStartTime = now + offset;
+        if (newStartTime < 0) {
+            long delta = abs(newStartTime);
+            return (maxMillis - delta);
+        }
+        else {
+            return newStartTime;
+        }
+    }
+
     long timeSinceReset() {
         long mils = millis();
-        if (startTime > mils) return mils + (0xFFFFFFFF - startTime);
+        if (startTime > mils) return mils + (maxMillis - startTime);
         return mils - startTime;
     }
 

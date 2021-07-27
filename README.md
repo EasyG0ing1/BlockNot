@@ -1,4 +1,5 @@
 ﻿# BlockNot Arduino Library
+
 **This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code. Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
 
 ### Version update notes are at the end of this document
@@ -69,9 +70,24 @@ if (voltageReadTimer.TRIGGERED) {
 }  
 ```   
 
-As of version 1.7.0, we now have a new trigger method called <b>triggeredOnDuration()</b> ... 
+###As of version 1.7.0, we now have a new trigger method called triggeredOnDuration() ...
 
-So, let's say that you have a 2300ms timer, and you call for the TRIGGERED event at 3000ms after the timers start time. Well, when you call TRIGGERED, the timers new startTime is whatever the current millis() value is, so by calling the timer long after its trigger event past, the time in between the event and your calling of the event is ignored. 
+So, let's say that you have a 2300ms timer, and you call for the TRIGGERED event at 3000ms after
+the timers start time. Well, when you call TRIGGERED, the timers new startTime is whatever the
+current millis() value is, so by calling the timer long after its trigger event past, the time
+in between the event and your calling of the event is ignored.
+
+<b>triggeredOnDuration()</b> picks up the slack of the time passed since the triggered event was
+supposed to fire. If we use the previous example, when you call this method, your new start time
+will be the current millis() PLUS the slack time that was calculated when you called the method.
+So if the current millis() is lets sahy 225400, your timers new start time will be 224700 (225400
+minus 700), which will make it trigger sooner than your set duration, but it will still trigger
+exactly one duration away from the last time it was supposed to trigger.
+
+This lets you ensure that your timer is always triggering exactly on every the mark every time
+your set duration happens. There could be situations where something else caused a temporary
+delay before your trigger check happened, and the assumption is that next time, it will be checked
+more quickly, and you'll pick up where you left off.
 
 ## The Reset
 
@@ -253,6 +269,8 @@ The example specifically blinks two LEDs such that they will always be in sync e
 
 ![](https://i.imgur.com/NU6PAQW.png)
 
+- Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
+
 # Methods
 
 Below you will find the name of each method in the library and any arguments that it accepts. Below that list, you will find the names of the macros that are connected to each method along with the arguments that a given macro may or may not pass to the method. The macros are key to making your code simple.
@@ -323,6 +341,10 @@ Thank you for your interest in BlockNot. I hope you find it as invaluable in you
 sims.mike@gmail.com
 
 ## Version Update Notes
+
+### 1.7.4
+- Fixed a problem with the way that triggeredOnDuration was being calculated. It is now correct,
+  and it also factors in any millis() rollover.
 
 ### 1.7.3
 - Minor update
