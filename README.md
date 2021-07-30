@@ -78,11 +78,11 @@ current millis() value is, so by calling the timer long after its trigger event 
 in between the event and your calling of the event is ignored.
 
 <b>triggeredOnDuration()</b> picks up the slack of the time passed since the triggered event was
-supposed to fire. If we use the previous example, when you call this method, your new start time
-will be the current millis() PLUS the slack time that was calculated when you called the method.
-So if the current millis() is lets sahy 225400, your timers new start time will be 224700 (225400
-minus 700), which will make it trigger sooner than your set duration, but it will still trigger
-exactly one duration away from the last time it was supposed to trigger.
+supposed to fire. If we use the previous example; when you call this method, your new start time
+will be the previous start time plus the duration. So if the current millis() is 225400, your 
+timers new start time will be 224700 (225400 minus 700), which will make it trigger sooner than
+your set duration, but it will still trigger exactly one duration away from the last time it was
+supposed to trigger.
 
 This lets you ensure that your timer is always triggering exactly on every the mark every time
 your set duration happens. There could be situations where something else caused a temporary
@@ -267,7 +267,7 @@ This example shows you how to use on and off timers to control anything that you
 
 The example specifically blinks two LEDs such that they will always be in sync every 6 seconds ... by this pattern:
 
-![](https://i.imgur.com/NU6PAQW.png)
+![](https://i.imgur.com/5cYIrpu.png)
 
 - Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
 
