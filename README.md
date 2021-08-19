@@ -2,7 +2,7 @@
 
 **This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code. Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
 
-### Version update notes are at the end of this document
+#### *** Version update notes are at the end of this document
 
 ## Getting started immediately
 Here is an example of BlockNot's easiest and most common usage:
@@ -140,6 +140,8 @@ RESET_TIMERS;
 ```
 
 When you call this method, it first captures the value of millis() then it assigns that value to the startTime of all of your timers so that they all reset at precisely the exact same time.
+
+It should be noted that even if you have your project divided into multiple code files, the resetAll method will reset all timers across all of your code ... It is global to your entire program.
 
 Read the description of the ResetAll example below for more info.
 
@@ -341,6 +343,9 @@ Thank you for your interest in BlockNot. I hope you find it as invaluable in you
 sims.mike@gmail.com
 
 ## Version Update Notes
+
+### 1.8.0
+- MAJOR re-structuring of the library, breaking it up into a header and a code file as should have been done from the beginning. There was a violation of the One Definition Rule which has been solved with this update. Library should now compile in any standard C++ scenario.  Thank you  [@dpetican](https://github.com/dpetican) for pointing this out.
 
 ### 1.7.4
 - Fixed a problem with the way that triggeredOnDuration was being calculated. It is now correct,
