@@ -2,7 +2,9 @@
 
 **This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code. Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
 
-#### *** Version update notes are at the end of this document
+#### ** Version update notes are at the end of this document
+
+#### *** If memory consumption is of interest, scroll down and see the section entitled 'Memory'
 
 ## Getting started immediately
 Here is an example of BlockNot's easiest and most common usage:
@@ -137,34 +139,14 @@ Sometimes, having the ability to reset all of your timers at the exact same time
 for example, when you need things to happen in a specific timed order and to do so repeatedly. This is possible
 by creating your timers then simply calling one method that resets them all simultaneously. 
 
-However, the feature must be explicitly turned on during BlockNot instantiation, and any timers
-you create before enabling the feature will not be included in the list of timers that will be globally reset
-using the method.
-
-This does two things for you:
-
-- First, if you don't need this feature, it saves memory by not tracking the instantiation of all of your timers.
-- Second, you can create some timers that are not affected by the resetAll() method, then you can create a timer
-that enables the feature. That timer - along with every timer created after it can be reset simultaneously using the method.
-
-**You only need to enable the feature ONCE and it will remain enabled for every additional timer you create. And
-you CANNOT disable the feature once it has been enabled.**
-
-You enable the feature using any of these class constructors:
-```C++
-BlockNot myTimer(100, GLOBAL_RESET);
-BlockNot myTimer( 10, SECONDS, GLOBAL_RESET);
-```
-#### look at the class constructors for additional use case
-You can then reset all timers that were created with the feature enabled by simply calling either the method or the macro:
+You can reset all of your timers simultaneously by simply calling either the method or the macro:
 ```C++
 resetAllTimers();
 RESET_TIMERS;
 ```
 
 When you call this method, it first captures the value of millis() then it assigns that value to the 
-startTime of every instantiated timer while the feature is enabled, so that they all reset at precisely
-the exact same time.
+startTime of every instantiated timer so that they all reset at precisely the exact same time.
 
 It should be noted that even if you have your project divided into multiple code files, the resetAll 
 method will reset all timers across all of your code ... It is global to your entire program.
@@ -181,18 +163,26 @@ This also improves the readability of your code.
 
 When you define your timer as a SECONDS timer, any values you read from the timer will be in seconds 
 even though under the hood, time is calculated in milliseconds. The response values will be rounded 
-however the compiler handles that. Also, any changes you make to the timer's duration must be done 
-in seconds and not milliseconds. In other words, once a timer has been declared as a SECONDS timer,
-it only deals with whole seconds.
+DOWN. So lets say that the millisecond value is 2999, you will get back 2. Also, any changes you make
+to the timer's duration must be done in seconds and not milliseconds. In other words, once a timer has
+been declared as a SECONDS timer, it only deals with whole seconds.
 
-You CAN, however, change a timer back over using this method:
+The exception to getting back seconds when you query the timer for values, is when you use either of these:
+````C++
+myTimer.GET_START_TIME;
+myTimer.getStartTime();
+````
+That value will always be in milliseconds since it is always recorded as millis() and is used for 
+all timer calculations where the starting time of the timer is relevant.
+
+If you need to switch the timers base units, you can do so like this:
 ````C++
 myTimer.switchTo(MILLISECONDS);
 myTimer.switchTo(SECONDS);
 ````
-Though I cannot imagine why anyone would want to do this, I included the feature for flexibility. Time 
-is always calculated in milliseconds under the hood, so no need to ever worry about needing to do those
-conversions. Just know that whichever units a timer is set for, you must deal with it in those units.
+Though I cannot imagine why anyone would want to do this, I included the feature for flexibility / options.
+Time is always calculated in milliseconds under the hood, so no need to ever worry about needing to do those
+conversions. Just know that however you declare the timers units, you must deal with it in those units.
 
 ## Start / Stop
 
@@ -355,16 +345,6 @@ If you have a nano or an uno or equivalent laying around and four LEDs and some 
 
 <B>Non-Blocking MATTERS!</B>
 
-#### TimersRules
-
-This sketch has SIX timers created and running at the same time. There are various things happening at the trigger event of each timer. The expected behavior is explained in the out Strings to Serial. Read them, then let it run for a minute or so then stop your Serial monitor and look at the output. You should be able to look at the number of milliseconds that is given in each output, and compare the differences with the expected behavior and see that everything runs as it is expected to run.<BR><BR>For example, when LiteTimer triggers, you should soon after that see the output from stopAfterThreeTimer.  When you look at the number of milliseconds in each of their outputs, you can see that indeed it does trigger three seconds after being reset, but then it does not re-trigger until after it is reset again.
- 
-#### ResetAll
-
-This sketch shows how all BlockNot timers defined in your sketch can be reset with a single line of code, rather than having to call reset() for each and every one separately. This comes in handy when all timers need to be reset at once, e.g. after the system clock has been adjusted from an external source (NTP or RTC, for example).
-
-<BR>These examples barely scratch the surface of what you can accomplish with BlockNot.
-
 #### Duration Trigger
 
 Read the section above to get an idea of what TRIGGERED_ON_DURATION does, then load this example up and play around
@@ -377,6 +357,16 @@ This example shows you how to use on and off timers to control anything that you
 
 The example specifically blinks two LEDs such that they will always be in sync every 6 seconds ... by this pattern:
 
+#### ResetAll
+
+This sketch shows how all BlockNot timers defined in your sketch can be reset with a single line of code, rather than having to call reset() for each and every one separately. This comes in handy when all timers need to be reset at once, e.g. after the system clock has been adjusted from an external source (NTP or RTC, for example).
+
+#### TimersRules
+
+This sketch has SIX timers created and running at the same time. There are various things happening at the trigger event of each timer. The expected behavior is explained in the out Strings to Serial. Read them, then let it run for a minute or so then stop your Serial monitor and look at the output. You should be able to look at the number of milliseconds that is given in each output, and compare the differences with the expected behavior and see that everything runs as it is expected to run.<BR><BR>For example, when LiteTimer triggers, you should soon after that see the output from stopAfterThreeTimer.  When you look at the number of milliseconds in each of their outputs, you can see that indeed it does trigger three seconds after being reset, but then it does not re-trigger until after it is reset again.
+
+<BR>These examples barely scratch the surface of what you can accomplish with BlockNot.
+
 ![](https://i.imgur.com/5cYIrpu.png)
 
 - Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
@@ -388,51 +378,57 @@ Below you will find the name of each method in the library and any arguments tha
 ** For any method call that resets a timer by default, the resetting behavior can be overridden by passing **NO_RESET** into the methods argument, the exception to this is the triggeredOnDuration() method, which exists because of the way it resets your timer, so overriding reset would make the method useless.
 
 
-* **triggered()** - Returns true if the duration time has passed. Also resets the timer to the current millis() (override by passing NO_RESET as an argument).
-* **triggeredOnDuration()** - Returns true if the duration time has passed. Also resets the timer to the current startTime + duration. There is no override for the resetting of the timer. See discussion below under the version 1.7.0 update notes.
-* **notTriggered()** - Returns true if the trigger event has not happened yet.
-* **getDuration()** - Returns an unsigned long, the duration that is currently set in the timer.
 * **setDuration()** - Override the current timer duration and set it to a new value. This also resets the timer. If you need the timer to NOT reset, then pass arguments like this (newDuration, NO_RESET);
 * **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer. To also reset the timer, call the method like this **addTime(newTime, WITH_RESET);**
 * **takeTime()** - The opposite effect of addTime(), same deal if you want to also reset the timer.
-* **getTimeUntilTrigger()** - Returns an unsigned long with the number of milliseconds remaining until the trigger event happens.
-* **timeSinceLastReset()** - Returns an unsigned long with the number of milliseconds that have passed since the timer was last reset or instantiated.
-* **reset()** - Sets the start time of the timer to the current millis().
+* **triggered()** - Returns true if the duration time has passed. Also resets the timer to the current millis() (override by passing NO_RESET as an argument).
+* **triggeredOnDuration()** - See section above entitled **Triggered On Duration** for complete discussion.
+* **notTriggered()** - Returns true if the trigger event has not happened yet.
 * **firstTrigger()** - Returns true only once and only after the timer has triggered.
+* **getNextTriggerTime()** - Returns an unsigned long of the next time that the timer will trigger. If it has triggered, it will return 0.
+* **getTimeUntilTrigger()** - Returns an unsigned long with the number of milliseconds remaining until the trigger event happens.
+* **getStartTime()** - Returns an unsigned long, The value of millis() that was recorded at the last reset of the timer.
+* **getDuration()** - Returns an unsigned long, the duration that is currently set in the timer.
+* **getTimeSinceLastReset()** - Returns an unsigned long with the number of milliseconds that have passed since the timer was last reset or instantiated.
+* **setStoppedReturnValue()** - Lets you set the value returned for those methods that return numbers, when the timer is stopped. 
 * **start()** - starts the timer (timers are started by default when you create them).
 * **stop()** - stops the timer.
-* **running()** - returns true if the timer is not stopped.
-* **stopped()** - returns true if the timer is stopped.
-* **resetAllTimers()** - loops through all timers that you created and resets startTime to millis(), which is recorded once and applied to all timers so they will all have the exact same startTime. 
+* **isRunning()** - returns true if the timer is not stopped.
+* **isStopped()** - returns true if the timer is stopped.
+* **toggle()** - Toggles the start and stopped state so that you only need to call this one method - like in a push button toggle situation.
+* **switchTo()** - Change the timer from SECONDS to MILLISECONDS or vice versa.
+* **reset()** - Sets the start time of the timer to the current millis().
+* **resetAllTimers()** - loops through all timers that you created and resets startTime to millis(), which is recorded once and applied to all timers so they will all have the exact same startTime. See **Memory** section for further discussion.
 
 # Macros
 
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
 
-*    **TIME_PASSED** - timeSinceLastReset()
-*    **TIME_SINCE_RESET** - timeSinceLastReset()
-*    **TIME_TILL_TRIGGER** - timeTillTrigger()
-*    **ELAPSED** - timeSinceLastReset()
-*    **TIME_REMAINING** - getTimeUntilTrigger()
-*    **REMAINING** - getTimeUntilTrigger()
-*    **DURATION** - getDuration()
-*    **DONE** - triggered()
-*    **GET_UNITS** - getUnits()
-*    **TRIGGERED** - triggered()
-*    **TRIGGERED_ON_DURATION** - triggeredOnDuration()
-*    **TRIGGERED_ON_DURATION_ALL** - triggeredOnDuration(ALL)
-*    **HAS_TRIGGERED** - triggered(NO_RESET)
-*    **NOT_DONE** - notTriggered()
-*    **NOT_TRIGGERED** - notTriggered()
-*    **FIRST_TRIGGER** - firstTrigger()
-*    **RESET** - reset()
-*    **RESET_TIMERS** - resetAllTimers()
-*    **START** - start()
-*    **STOP** - stop()
-*    **STARTED** - running()
-*    **RUNNING** - running()
-*    **STOPPED** - stopped()
-*    **TOGGLE** - toggle()
+* **TIME_PASSED** - getTimeSinceLastReset()
+* **TIME_SINCE_RESET** - getTimeSinceLastReset()
+* **ELAPSED** - getTimeSinceLastReset()
+* **TIME_TILL_TRIGGER** - getTimeUntilTrigger()
+* **TIME_REMAINING** - getTimeUntilTrigger()
+* **REMAINING** - getTimeUntilTrigger()
+* **DURATION** - getDuration()
+* **GET_UNITS** - getUnits()
+* **GET_START_TIME** - getStartTime()
+* **DONE** - triggered()
+* **TRIGGERED** - triggered()
+* **TRIGGERED_ON_DURATION** - triggeredOnDuration()
+* **TRIGGERED_ON_DURATION_ALL** - triggeredOnDuration(ALL)
+* **HAS_TRIGGERED** - triggered(NO_RESET)
+* **NOT_DONE** - notTriggered()
+* **NOT_TRIGGERED** - notTriggered()
+* **FIRST_TRIGGER** - firstTrigger()
+* **RESET** - reset()
+* **RESET_TIMERS** - resetAllTimers()
+* **START** - start()
+* **STOP** - stop()
+* **STARTED** - running()
+* **RUNNING** - running()
+* **STOPPED** - stopped()
+* **TOGGLE** - toggle()
 
 You can, of course create your own macros within your code. So, for example, let's say that you wanted a macro that overrides the default reset behavior in the setDuration() method, which by default, will change the duration of the timer to your new value and will also reset the timer. But lets say you want to change the duration WITHOUT resting the timer and you wanted that to be done with a word that makes more sense to you.
 
@@ -444,11 +440,45 @@ QUICK_CHANGE(3200);
 
 The only difference here, is that you cannot make a macro that applies universally to all of your timers. You would need to make one for each timer you have created. If you have ideas for macros that you think should be included in BlockNot, let me know and I'll see about adding it.
 
-Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.    
-<BR>Mike Sims  
-sims.mike@gmail.com
+## Memory
+
+I have compiled BlockNot in a variety of scenarios. The only difference between each specific scenario is that I
+would use traditional methods of implementing non-blocking timers, vs using BlockNot. In some scenarios, BlockNot
+would cause the sketch to compile using less memory and in some scenarios, it would use a little more memory. 
+Obviously your situation will be different depending on the size of your project, other libraries used etc.
+
+If you're really struggling for memory space, try creating your timers using the manual method just to see if it
+makes a difference or not using BlockNot.
+
+In the interest of squeezing as much program space as possible, I have added the ability to disable BockNot's
+global reset option, because it, by default, maintains an array of all instantiations of BlockNot which consumes
+a little extra memory and if you don't need that feature and are hurting for memory space, then you can disable
+it by passing NO_GLOBAL_RESET as the last argument into your first timer (You only need to pass that argument ONCE
+and it will remain disabled for all timers created after that).
+
+Examples of how to disable the feature:
+````C++
+BlockNot myTimer(3800, NO_GLOBAL_RESET);
+BlockNot myTimer(15, SECONDS, NO_GLOBAL_RESET);
+````
+
+OR, you can optionally define some timers that are affected by the global reset method, then issue the NO_GLOBAL
+argument into the next timer you create and that timer, and every timer created after it will not be included in the 
+global reset option.
+
+````C++
+BlockNot timer1(1350);
+BlockNot timer2(5,SECONDS);
+BlockNot timer3(2670,NO_GLOBAL_RESET)
+BlockNot timer4(3460); //not included in global reset
+````
 
 ## Version Update Notes
+
+### 1.8.2
+- This is HOPEFULLY the final re-working of the code for a while.
+- Moved the Global Reset option back to being the default behavior, with having the ability to disable it as might be needed in rare cases when you need to squeeze as much program memory as you can. See the section above entitled MEMORY
+- Most changes in this release were "under the hood" changes, with some public methods undergoing minor changes. This README has been properly updated to describe any changes accurately.
 
 ### 1.8.1
 - In order to squeeze as much memory as possible out of the microcontroller, the resetAllTimers method will no longer be default behavior. Read the section above concerning its use.
@@ -511,3 +541,7 @@ Therefore, any methods that you use which return a length of time such as getDur
 
 I welcome any and all suggestions for changes or improvements. You can either open an issue, or code the change yourself and create a pull request. This library is for all of us and making it the best it can be is important! 
 <BR><BR>You can also email me:<BR>sims.mike@gmail.com
+
+Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.    
+<BR>Mike Sims  
+sims.mike@gmail.com

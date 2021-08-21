@@ -33,7 +33,7 @@ void printTime(int timer) {
 void setup() {
     Serial.begin(115200);
     delay(1500);
-    Serial.println(F("READY!\n"));
+    Serial.println(F("\nREADY!\n"));
     delay(1000);
     printTimers();
     startTime = millis();

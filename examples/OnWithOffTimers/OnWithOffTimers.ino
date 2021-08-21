@@ -66,11 +66,13 @@ void turnBlueOff() {
 }
 
 void setup() {
+    Serial.begin(115200);
     pinMode(BLUE_PIN, OUTPUT);
     pinMode(RED_PIN, OUTPUT);
     resetAllTimers();
     turnBlueOn();
     turnRedOn();
+    Serial.println(F("\nREADY!\n"));
 }
 
 void loop() {
@@ -81,6 +83,7 @@ void loop() {
 
     if (blueTimerOFF.TRIGGERED && blueIsOff()) {
         turnBlueOn();
+        Serial.println("Blue On");
     }
 
     if (redTimerON.TRIGGERED && redIsOn()) {
@@ -89,5 +92,6 @@ void loop() {
 
     if (redTimerOFF.TRIGGERED && redIsOff()) {
         turnRedOn();
+        Serial.println("Red On\n");
     }
 }

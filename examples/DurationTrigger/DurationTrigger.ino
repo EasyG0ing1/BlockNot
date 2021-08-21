@@ -29,7 +29,7 @@ void processSerial() {
 
 void setup() {
     Serial.begin(115200);
-    Serial.println("\nARDUINO READY!\n\n");
+    Serial.println(F("\nREADY!\n"));
 }
 
 void loop() {

@@ -11,7 +11,7 @@ BlockNot secondsCounter(1000);
 void setup() {
     Serial.begin(57600);
     delay(1800);
-    Serial.println(F("\n\nNano Ready!"));
+    Serial.println(F("\nREADY!\n"));
 }
 
 void loop()
