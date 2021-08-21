@@ -1,33 +1,55 @@
-#include <Arduino.h>
+/*
+ * BlockNot is a simple and easy to use Arduino class for the implementation
+ * of non-blocking timers, as it is far better to use non-blocking timers
+ * with a micro-controller since they allow you to trigger code at defined
+ * durations of time, without stopping the execution of your main loop.
+ *
+ * Written by - Michael Sims
+ * Full documentation can be found at: https://github.com/EasyG0ing1/BlockNot
+ *
+ * See LICENSE file for acceptable use conditions - this is open source
+ * and there are no restrictions on its usage, I simply ask for some acknowledgment
+ * if it is used in your project.
+ */
+
 #include <BlockNot.h>
 
 /*
- * Variables
+ * Global Variables
  */
-
 
 BlockNot *BlockNot::firstTimer = nullptr;
 BlockNot *BlockNot::currentTimer = nullptr;
-
+bool BlockNot::global = false;
 /*
  * Constructors
  */
 
-BlockNot::BlockNot() { addToTimerList(); }
-
-BlockNot::BlockNot(unsigned long time, bool units) {
-    baseUnits = units;
-    duration = convertUnitsSet(time);
-    reset();
-    addToTimerList();
+BlockNot::BlockNot() {
+    if(global) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, bool units) {
-    baseUnits = units;
-    timerStoppedReturnValue = stoppedReturnValue;
+BlockNot::BlockNot(unsigned long time, bool setGlobal) {
+    baseUnits = MILLISECONDS;
+    global = global ? global : setGlobal;
     duration = convertUnitsSet(time);
     reset();
-    addToTimerList();
+    if (global) addToTimerList();
+}
+
+BlockNot::BlockNot(unsigned long time, float units) {
+    baseUnits = units;
+    duration = convertUnitsSet(time);
+    reset();
+    if (global) addToTimerList();
+}
+
+BlockNot::BlockNot(unsigned long time, float units, bool setGlobal) {
+    baseUnits = units;
+    global = global ? global : setGlobal;
+    duration = convertUnitsSet(time);
+    reset();
+    if (global) addToTimerList();
 }
 
 /*
@@ -56,48 +78,47 @@ bool BlockNot::triggered(bool resetOption) {
     if (resetOption && triggered) {
         reset();
     }
-    if (timerEnabled) return triggered;
+    if (timerRunning) return triggered;
     else return false;
 }
 
-bool BlockNot::triggeredOnDuration() {
-    /**
-     * Sets the next startTime to the current millis less the amount of time that has passed since the Triggered event was supposed to happen.
-     * This keeps your timer triggering exactly every duration on the duration. The method getNewStartTime runs the calculation accounting
-     * for possible rollover in the millis() value.
-     */
+bool BlockNot::triggeredOnDuration(bool allMissed) {
     bool triggered = hasTriggered();
     if (triggered) {
-        long elapsedTime = (long) timeSinceLastReset();
-        reset(getNewStartTime(duration - elapsedTime));
+        int missedDurations = timeSinceReset() / duration;
+        totalMissedDurations += (allMissed ? missedDurations : 0);
+        unsigned long newStartTime = getDurationTriggerStartTime();
+        reset(newStartTime);
+    }
+    if (totalMissedDurations > 0 && allMissed) {
+        totalMissedDurations--;
+        return true;
     }
     return triggered;
 }
 
 bool BlockNot::notTriggered() {
-    if (timerEnabled) return hasTriggered(); else return false;
+    if (timerRunning) return hasTriggered(); else return false;
 }
 
 bool BlockNot::firstTrigger() {
     if (hasTriggered() && !onceTriggered) {
         onceTriggered = true;
-        if (timerEnabled) return true;
+        if (timerRunning) return true;
     }
     return false;
 }
 
-bool BlockNot::isEnabled() {
-    return timerEnabled;
-}
+unsigned long BlockNot::timeTillTrigger() { return (hasTriggered()) ? 0 : convertUnitsGet(duration - timeSinceLastReset()); }
 
 unsigned long BlockNot::getTimeUntilTrigger() {
-    return timerEnabled ? convertUnitsGet(remaining()) : timerStoppedReturnValue;
+    return timerRunning ? convertUnitsGet(remaining()) : timerStoppedReturnValue;
 }
 
 unsigned long BlockNot::getStartTime() { return startTime; }
 
 unsigned long BlockNot::getDuration() {
-    return timerEnabled ? convertUnitsGet(duration) : timerStoppedReturnValue;
+    return timerRunning ? convertUnitsGet(duration) : timerStoppedReturnValue;
 }
 
 String BlockNot::getUnits() {
@@ -105,32 +126,26 @@ String BlockNot::getUnits() {
 }
 
 unsigned long BlockNot::timeSinceLastReset() {
-    return timerEnabled ? convertUnitsGet(timeSinceReset()) : timerStoppedReturnValue;
+    return timerRunning ? convertUnitsGet(timeSinceReset()) : timerStoppedReturnValue;
 }
 
-void BlockNot::setDisableReturnValue(unsigned long stoppedReturnValue) {
+void BlockNot::setStoppedReturnValue(unsigned long stoppedReturnValue) {
     timerStoppedReturnValue = stoppedReturnValue;
 }
 
 void BlockNot::start() {
-    enable();
+    timerRunning = true;
 }
 
 void BlockNot::stop() {
-    disable();
+    timerRunning = false;
 }
 
-void BlockNot::enable() {
-    timerEnabled = true;
+void BlockNot::toggle() {
+    timerRunning = !timerRunning;
 }
 
-void BlockNot::disable() {
-    timerEnabled = false;
-}
-
-void BlockNot::negateState() {
-    timerEnabled = !timerEnabled;
-}
+void BlockNot::switchTo(float units) { baseUnits = units; }
 
 void BlockNot::reset(const unsigned long newStartTime) {
     resetTimer(newStartTime);
@@ -146,9 +161,7 @@ void BlockNot::resetTimer(const unsigned long newStartTime) {
 }
 
 unsigned long BlockNot::timeSinceReset() {
-    unsigned long mils = millis();
-    if (startTime > mils) return mils + (maxMillis - startTime);
-    return mils - startTime;
+    return millis() - startTime;
 }
 
 bool BlockNot::hasTriggered() {
@@ -161,15 +174,14 @@ bool BlockNot::hasNotTriggered() {
 
 unsigned long BlockNot::remaining() {
     unsigned long timePassed = timeSinceReset();
-    return (timePassed < duration) ? duration - timePassed : 0;
+    return (timePassed < duration) ? (duration - timePassed) : 0;
 }
 
-unsigned long BlockNot::getNewStartTime(long offset, unsigned long now) {
-    long newStartTime = now + offset;
-    if (newStartTime < 0) {
-        long delta = abs(newStartTime);
-        return (maxMillis - delta);
-    } else return newStartTime;
+unsigned long BlockNot::getDurationTriggerStartTime() {
+    unsigned long timePassed = timeSinceReset();
+    long numberOfDurationsPassed = timePassed / duration;
+    long totalDurationTime = numberOfDurationsPassed * duration;
+    return startTime + totalDurationTime;
 }
 
 unsigned long BlockNot::convertUnitsSet(const unsigned long timeValue) {
@@ -181,7 +193,7 @@ unsigned long BlockNot::convertUnitsGet(const unsigned long timeValue) {
 }
 
 /*
- * Reset All Timers Methods
+ * Global Methods affecting all instantiations of the BlockNot class
  */
 
 void resetAllTimers(const unsigned long newStartTime) {

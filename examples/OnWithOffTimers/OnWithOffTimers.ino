@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <BlockNot.h>
 
-BlockNot blueTimerON(500);
+BlockNot blueTimerON(500,GLOBAL_RESET);
 BlockNot blueTimerOFF(2500);
 
 BlockNot redTimerON(5000);

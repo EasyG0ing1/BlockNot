@@ -4,9 +4,9 @@
 
 #include <BlockNot.h>
 
-BlockNot timer1( 1, SECONDS);
-BlockNot timer2( 5, SECONDS);
-BlockNot timer3( 7500 );
+BlockNot timer1(1, SECONDS, GLOBAL_RESET);
+BlockNot timer2(5, SECONDS);
+BlockNot timer3(7500);
 
 BlockNot resetTimer(30, SECONDS);  // Timer to trigger reset of all timers every 30s
 
