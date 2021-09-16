@@ -475,6 +475,9 @@ BlockNot timer4(3460); //not included in global reset
 
 ## Version Update Notes
 
+### 1.8.3
+- small bug fixes
+
 ### 1.8.2
 - This is HOPEFULLY the final re-working of the code for a while.
 - Moved the Global Reset option back to being the default behavior, with having the ability to disable it as might be needed in rare cases when you need to squeeze as much program memory as you can. See the section above entitled MEMORY
