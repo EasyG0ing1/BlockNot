@@ -425,9 +425,9 @@ Here are the macro terms and the methods that they call along with any arguments
 * **RESET_TIMERS** - resetAllTimers()
 * **START** - start()
 * **STOP** - stop()
-* **STARTED** - running()
-* **RUNNING** - running()
-* **STOPPED** - stopped()
+* **ISSTARTED** - isRunning()
+* **ISRUNNING** - isRunning()
+* **ISSTOPPED** - isRunning()
 * **TOGGLE** - toggle()
 
 You can, of course create your own macros within your code. So, for example, let's say that you wanted a macro that overrides the default reset behavior in the setDuration() method, which by default, will change the duration of the timer to your new value and will also reset the timer. But lets say you want to change the duration WITHOUT resting the timer and you wanted that to be done with a word that makes more sense to you.
@@ -474,6 +474,10 @@ BlockNot timer4(3460); //not included in global reset
 ````
 
 ## Version Update Notes
+
+
+### 1.8.4
+- Changed STARTED, RUNNING and STOPPED to ISSTARTED, ISRUNNING and ISSTOPPED to avoid conflict with some libraries. 
 
 ### 1.8.3
 - small bug fixes

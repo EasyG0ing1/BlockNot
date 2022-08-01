@@ -54,9 +54,9 @@ enum Global {yes, no};
 #define RESET_TIMERS                resetAllTimers()
 #define START                       start()
 #define STOP                        stop()
-#define STARTED                     isRunning()
-#define RUNNING                     isRunning()
-#define STOPPED                     isSstopped()
+#define ISSTARTED                     isRunning()
+#define ISRUNNING                     isRunning()
+#define ISSTOPPED                     isStopped()
 #define TOGGLE                      toggle()
 
 class BlockNot {
