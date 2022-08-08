@@ -603,6 +603,6 @@ Thank you [@bizprof](https://github.com/bizprof) for contributing this feature t
 
 I welcome any and all suggestions for changes or improvements. You can either open an issue, or code the change yourself and create a pull request. This library is for all of us and making it the best it can be is important! 
 
-You can also email me<BR>[sims.mike@gmail.com](sims.mike@gmail.com)
+You can also email me<BR>[sims.mike@gmail.com](mailto:sims.mike@gmail.com)
 
 Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.
