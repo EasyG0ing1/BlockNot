@@ -597,20 +597,12 @@ Thank you [@bizprof](https://github.com/bizprof) for contributing this feature t
 
 ### 1.6.5
 
-- **SECONDS Mode** - Sometimes we only need to work with secons, which makes it pain in the rear to constantly have to work with numbers in the thousands because everything is in milliseconds. SO NOW, if you need to work just with whole seconds, you can declare your timer as a SECONDS timer when you instantiate it, like this:
-
- ```C++
- BlockNot myTimer(5, SECONDS);
- ```
-Once the timer is established as a SECONDS timer, then any changes you make to it such as adding or removing time, or even setting the duration to a new number, must be done in seconds, not milliseconds.<BR><BR>
-All time calculations under the hood continue to happen in millisecond units, I just included the proper math so that those units are converted from seconds to milliseconds and back on all related methods.<BR><BR>
-Therefore, any methods that you use which return a length of time such as getDuration() etc., will be first calculated using milliseconds, then divided by 1,000 and returned to you, so however C++ rounds those numbers is how you will get them back. But when you're dealing with whole second timers, then fractional second precision should be irrelevant to you. If it matters, then don't use a SECONDS timer.
+- **Added SECONDS Mode** - Explained in this README (scroll up)
 
 ## Suggestions
 
 I welcome any and all suggestions for changes or improvements. You can either open an issue, or code the change yourself and create a pull request. This library is for all of us and making it the best it can be is important! 
-<BR><BR>You can also email me:<BR>sims.mike@gmail.com
 
-Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.    
-<BR>Mike Sims  
-sims.mike@gmail.com
+You can also email me<BR>[sims.mike@gmail.com](sims.mike@gmail.com)
+
+Thank you for your interest in BlockNot. I hope you find it as invaluable in your projects as I have in mine.
