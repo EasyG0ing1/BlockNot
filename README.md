@@ -62,7 +62,7 @@ They both do the same thing, but in terms of readability, the second example is 
 
 Here is a simple graph showing you how BlockNot timers work. What's important here is to realize that your code never stops executing while the timer is passing time.
 
-![](./img/Visual.png)
+![](./img/visual.png)
 
 ## The Trigger
 
@@ -399,7 +399,7 @@ but then it does not re-trigger until after it is reset again.
 
 These examples barely scratch the surface of what you can accomplish with BlockNot.
 
-![](https://i.imgur.com/5cYIrpu.png)
+![](./img/timeGraph.png)
 
 - Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
 
