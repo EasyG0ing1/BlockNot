@@ -62,7 +62,7 @@ They both do the same thing, but in terms of readability, the second example is 
 
 Here is a simple graph showing you how BlockNot timers work. What's important here is to realize that your code never stops executing while the timer is passing time.
 
-![](./img/Visual.png)
+![img1](./img/Visual.png)
 
 ## The Trigger
 
