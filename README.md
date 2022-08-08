@@ -62,7 +62,7 @@ They both do the same thing, but in terms of readability, the second example is 
 
 Here is a simple graph showing you how BlockNot timers work. What's important here is to realize that your code never stops executing while the timer is passing time.
 
-![Graphical illustration of timer in action](https://i.imgur.com/5HkKgTA.png)
+![](./img/Visual.png)
 
 ## The Trigger
 
@@ -226,9 +226,9 @@ myTimer.STOP;
 
 And you can find out if the timer is running or not using either of these calls:
 ```C++  
-if (myTimer.RUNNING) { my code; }  
-if (myTimer.STARTED) { my code; }  
-if (myTimer.STOPPED) { my code; }  
+if (myTimer.ISRUNNING) { my code; }  
+if (myTimer.ISSTARTED) { my code; }  
+if (myTimer.ISSTOPPED) { my code; }  
 ```  
 
 You can also flip the state of the timer (if stopped, it will start; if started, it will stop):
@@ -243,131 +243,161 @@ if (BUTTON_PRESSED) {
  }  
 ```  
 
-## Triggered On Duration
+## Triggered OnDuration
 
-I saved the best for last ... this topic is a little tricky to comprehend, but I have done my best to 
-explain it as simply as possible, and I even created a couple of graphs to explain it visually which 
-should help bring clarity to otherwise cumbersome words.
+I saved the best for last (tongue in cheek) ... this topic is a little tricky to comprehend (myself included as I
+wrote this method), but I have done my best to explain it as simply as possible.
 
-Sometimes, you might need to use a timer that consistently triggers on the nose at every duration interval
-REGARDLESS of when you call the TRIGGERED event. No, we aren't running any background threads, although 
-I do plan on creating a timer library for multi-core microcontrollers in the future that will provide that ability. But
-this trigger event actually takes into account WHEN you call the TRIGGERED event. It then compares the moment in time
-when you called for the trigger to the moment in time it was supposed to trigger, and it works that difference 
-back into the startTime during the reset, so that the trigger "clicks" can happen exactly at ever duration interval.
+There might be times when it becomes necessary to respect a timers trigger in the context of
+its **duration**, so that when a timers trigger is checked, it then resets its ```startTime``` to a time that is 
+relative to its duration rather than simply resetting to the current value of ```millis()```.
 
-I can think of several scenarios where this could be useful but the main reason for this trigger is to provide - 
-as much as possible - a timer that triggers consistently rather than simply resetting its start time to that moment
-when you call TRIGGER.
+```triggeredOnDuration()``` Does this with two optional results.
 
-Another use case for this trigger would be when using a timer as a sync counter of sorts. And to explain that, I 
+### Default Behavior
+Let's use a timer that is set to a duration of 500ms as our example.
+
+You test it for TRIGGER by using either the macros or the method
+```CPP
+myTimer.TRIGGERED_ON_DURATION
+myTimer.TRIGGERED_ON_MARK
+myTimer.triggeredOnDuration()
+```
+BlockNot views the timer as having rigid trigger marks that happen exactly 500ms apart. So
+if you check the timer - say 700ms after you start it, you will get a TRUE response and
+it will trigger again in 300ms instead of 500ms because BlockNot will set the startTime
+back to 500ms and not the current time of 700. 
+
+So lets say we are well into the passage of time, and you test for trigger at time index 2830 ... 
+BlockNot will return ```TRUE``` and then set the startTime back to 2500 so it will trigger again at 3000.
+
+The idea is that you can have a timer that will provide the ability to run code on a consistent pulse where each pulse
+happens exactly at every interval of time based on the timers duration, and you can have your code execute
+as close to those 'pulse marks' as possible.
+
+### OnDuration(ALL)
+
+```triggeredOnDuration(ALL)``` works exactly as ```triggeredOnDuration()``` EXCEPT that BlockNot
+will continue to return a ```TRUE``` result until every missed mark is accounted for.
+
+You can test for TRIGGERED using these macros or the method
+```CPP
+myTimer.TRIGGERED_ON_DURATION_ALL
+myTimer.TRIGGERED_ALL
+myTimer.triggeredOnDuration(ALL)
+```
+Continuing with our 500ms duration timer, if you test it at time index 1250 then again at
+time index 1300, you will get a TRUE response for both tests, since you missed the first
+mark at 500, but then tested after the second mark at 1000. If you tested again before
+1500, you would get a ```FALSE``` response.
+
+These graphs show you what will happen as time advances and you test for TRIGGERED
+using this method.
+
+A green Test means you tested and got TRUE while red means you got FALSE.
+
+This is how the standard TRIGGERED event responds:
+
+![](./img/cmpTRIGGERED.png)
+
+This visualises how ```TRIGGERED_ON_DURATION``` / ```TRIGGERED_ON_MARK``` works.
+
+![](./img/cmpONMARK.png)
+
+Notice how you can get a TRUE response immediately before and immediately after a trigger
+event. BlockNot is giving you a TRUE response for the trigger that happened at time index
+2500, then it gives a TRUE response for the trigger that happened at time index 3000. But
+when you test again before 3500, you will get a FALSE response.
+
+Here is how ```TRIGGERED_ON_DURATION_ALL``` / ```TRIGGERED_ALL``` works.
+
+![](./img/cmpONDURATION.png)
+
+Notice you got FOUR consecutive TRUE results in a row. This is because you missed three triggers
+, then you tested twice, then at a trigger point, then once again, and the 5th time you tested,
+your test happened before the next trigger and all of the missed trigger events had been accounted
+for, so you get a FALSE response.
+
+A possible use case for the ALL trigger test would be when using a timer as a sync counter of sorts. And to explain that, I 
 am going to use an extreme example that should illustrate the point... Lets say that you have a project that 
 must automatically water plants at least six times every hour. It doesn't matter if the plants are watered every 10
 minutes, or if they are watered once, then 15 minutes later, then again 5 minutes later etc., as long as they are
-watered six times every hour. And lets also asume that your code is so busy doing other things, that it might not 
-be able to check the trigger on that water timer - maybe even after two full durations have passed. Well, you can
-engage this trigger using an argument that will cause BlockNot to know just how many triggers you missed. Then, 
-each time you call for the trigger, it will respond true until you have made up every missed trigger.
+watered six times every hour. 
 
-So in default mode, TRIGGERED_ON_DURATION will make sure that each new start time is set to always be one duration after
-the last duration has passed regardless of when you call TRIGGERED_ON_DURATION, and if you pass the optional 
-argument, ALL, it will make up every missed trigger every time it is called until the next trigger is in the future.
+We would define this timer as follows:
+```CPP
+BlockNot waterTimer = BlockNot(600, SECONDS); //10 minute duration
+```
 
-Here are a couple of graphs that should help in understanding what is going on with this method:
+Let's also assume that your code is so busy doing other things, that it might not 
+be able to check the trigger on that timer - possibly even after two full durations have passed.
+When you check the trigger using ```TRIGGERED_ALL```, that will cause BlockNot to continue giving
+you a TRUE response until each missed trigger has been provided to you. 
 
-In both of these charts, our timer is configured with a 400 millisecond duration.
-
-The first chart represents what happens when you call the normal TRIGGERED method. The blue lines indicate when 
-you called TRIGGERED and the return was TRUE ... red lines indicate when you called TRIGGERED and the return was
-false, and the faded blue lines indicate when the duration of the timer has come to pass, which is - 400 milliseconds
-after the start time has been set, and in this graph, the start time is set to the moment when you call TRIGGERED
-and you get a true response. Notice how sometimes you call TRIGGERED after the duration has passed, but then the
-new start time is set to that moment in time so that the next trigger can happen 400 milliseconds later. But if
-you miss the duration time mark, you will get a true response because that duration has passed. But the new start
-time will be set to that moment for the next trigger.
-
-This image represents behavior using this method call:
-````C++
-if (myTimer.TRIGGERED) {my code;}
-````
-
-![Normal Timer](https://i.imgur.com/GFhuFIK.png)
-
-This next image shows you what happens when you call TRIGGERED_ON_DURATION. Notice that, for example, when you get
-a true response after the 1200 ms time mark, but then continue to call TRIGGERED_ON_DURATION, you will get another 
-true response before another 400 milliseconds has passed. That is because BlockNot has accounted for the missed time
-after the 122 ms mark and it adjusted the start time for the next trigger so that the triggers continue to happen 
-consistently every 400 milliseconds.
-
-This is the method call that represents this image:
-````C++
-if (myTimer.TRIGGERED_ON_DURATION) {my code;}
-if (myTimer.triggeredOnDuration()) {my code;}
-````
-
-![Triggered On Duration](https://i.imgur.com/9KUsmae.png)
-
-And in this last image, you can see what happens when you call TRIGGERED_ON_DURATION but you pass the optional
-ALL argument like this:
-
-````C++
-if (myTimer.TRIGGERED_ON_DURETION_ALL) {my code;}
-if (myTimer.triggeredOnDuration(ALL)) {my code;}
-````
-Every missed trigger event will be able to be made up because BlockNot will track the last time you received a 
-true response, and it will count the number of durations that you have missed, then return true for each missed 
-duration until you have made them all up.
-
-![Triggered On Duration with ALL](https://i.imgur.com/udWT3re.png)
-
-See the example sketch called **DurationTrigger** to see this method work in real time. 
+See the example sketch called **DurationTrigger** to see this method in action. 
 
 ## Summary
 
-Well, those are the fundamentals of BlockNot.
+Well, that's BlockNot in a nutshell.
 
 Simple, right?
 
-BlockNot is a library intended to make the employment of non-blocking timers easy, intuitive, natural and obvious. It can be engaged with simple single word method calls or by calling the core methods directly.
+BlockNot is a library intended to make the employment of non-blocking timers easy, 
+intuitive, natural and obvious. It can be engaged with simple single word macros 
+or by calling the methods directly.
 
 There are more methods that allow you to affect change on your timers after instantiation and also methods to get info about your timers. You can change the duration of an existing timer in three different ways, you can reset the timer, or you can even find out how much time is left before the trigger event occurs, or find out how much time has passed since the timer last triggered.
 
-## Examples
+# Examples
 
-There are currently four examples in the library.
+There are currently six examples in the library.
 
-#### BlockNotBlink
+### BlockNotBlink
 
 This sketch does the same thing as the famous blink sketch, only it does it with BlockNot elegance and style.
 
-
-#### BlockNotBlinkParty
+### BlockNotBlinkParty
 
 If you have a nano or an uno or equivalent laying around and four LEDs and some resistors, connect them to pins 9 - 12 and run this sketch. You will immediately see the benefit of non-blocking timers. You could never write a sketch that could do the same thing using the delay() command.  It would be impossible.
 
-<B>Non-Blocking MATTERS!</B>
+**Non-Blocking MATTERS!**
 
-#### Duration Trigger
+### DurationTrigger
 
 Read the section above to get an idea of what TRIGGERED_ON_DURATION does, then load this example up and play around
 with it. You can pause the loop from Terminal monitor by typing in p and hitting enter. Then if you wait for several
 durations to pass, then un-pause the loop, you will see hoe BlockNot handles that feature.
 
-#### OnWithOffTimers
+### OnWithOffTimers
 
-This example shows you how to use on and off timers to control anything that you need to have on for a certain length of time and also off for a certain length of time.
+This example shows you how to use on and off timers to control anything that you need 
+to have on for a certain length of time and also off for a certain length of time.
 
-The example specifically blinks two LEDs such that they will always be in sync every 6 seconds ... by this pattern:
+The example specifically blinks two LEDs such that they will always be in sync every 
+6 seconds ... by this pattern:
 
-#### ResetAll
+### ResetAll
 
-This sketch shows how all BlockNot timers defined in your sketch can be reset with a single line of code, rather than having to call reset() for each and every one separately. This comes in handy when all timers need to be reset at once, e.g. after the system clock has been adjusted from an external source (NTP or RTC, for example).
+This sketch shows how all BlockNot timers defined in your sketch can be reset with a 
+single line of code, rather than having to call reset() for each and every one 
+separately. This comes in handy when all timers need to be reset at once, e.g. after 
+the system clock has been adjusted from an external source (NTP or RTC, for example).
 
-#### TimersRules
+### TimersRules
 
-This sketch has SIX timers created and running at the same time. There are various things happening at the trigger event of each timer. The expected behavior is explained in the out Strings to Serial. Read them, then let it run for a minute or so then stop your Serial monitor and look at the output. You should be able to look at the number of milliseconds that is given in each output, and compare the differences with the expected behavior and see that everything runs as it is expected to run.<BR><BR>For example, when LiteTimer triggers, you should soon after that see the output from stopAfterThreeTimer.  When you look at the number of milliseconds in each of their outputs, you can see that indeed it does trigger three seconds after being reset, but then it does not re-trigger until after it is reset again.
+This sketch has SIX timers created and running at the same time. There are various 
+things happening at the trigger event of each timer. The expected behavior is explained 
+in the out Strings to Serial. Read them, then let it run for a minute or so then stop 
+your Serial monitor and look at the output. You should be able to look at the number of 
+milliseconds that is given in each output, and compare the differences with the 
+expected behavior and see that everything runs as it is expected to run.
 
-<BR>These examples barely scratch the surface of what you can accomplish with BlockNot.
+For example, when LiteTimer triggers, you should soon after that see the output from 
+stopAfterThreeTimer.  When you look at the number of milliseconds in each of their 
+outputs, you can see that indeed it does trigger three seconds after being reset, 
+but then it does not re-trigger until after it is reset again.
+
+These examples barely scratch the surface of what you can accomplish with BlockNot.
 
 ![](https://i.imgur.com/5cYIrpu.png)
 
@@ -418,7 +448,9 @@ Here are the macro terms and the methods that they call along with any arguments
 * **DONE** - triggered()
 * **TRIGGERED** - triggered()
 * **TRIGGERED_ON_DURATION** - triggeredOnDuration()
+* **TRIGGERED_ON_MARK** - triggeredOnDuration()
 * **TRIGGERED_ON_DURATION_ALL** - triggeredOnDuration(ALL)
+* **TRIGGERED_ALL** - triggeredOnDuration(ALL)
 * **HAS_TRIGGERED** - triggered(NO_RESET)
 * **NOT_DONE** - notTriggered()
 * **NOT_TRIGGERED** - notTriggered()
@@ -432,7 +464,16 @@ Here are the macro terms and the methods that they call along with any arguments
 * **ISSTOPPED** - isRunning()
 * **TOGGLE** - toggle()
 
-You can, of course create your own macros within your code. So, for example, let's say that you wanted a macro that overrides the default reset behavior in the setDuration() method, which by default, will change the duration of the timer to your new value and will also reset the timer. But lets say you want to change the duration WITHOUT resting the timer and you wanted that to be done with a word that makes more sense to you.
+If you can think of MACRO names that would make the reading and writing of you code more
+natural and you think it would be a benefit to BlockNot, PLEASE either submit a pull
+request or shoot me an email so that we can all work together to make this library the
+best that it can possibly be.
+
+Also, you can, of course create your own macros within your code. So, for example, let's 
+say that you wanted a macro that overrides the default reset behavior in the setDuration() 
+method, which by default, will change the duration of the timer to your new value and will 
+also reset the timer. But lets say you want to change the duration WITHOUT resting the 
+timer and you wanted that to be done with a word that makes more sense to you.
 
 ```C++  
 #define QUICK_CHANGE(value) myTimer.setDuration(value, false)  
@@ -440,7 +481,10 @@ You can, of course create your own macros within your code. So, for example, let
 QUICK_CHANGE(3200);  
 ```  
 
-The only difference here, is that you cannot make a macro that applies universally to all of your timers. You would need to make one for each timer you have created. If you have ideas for macros that you think should be included in BlockNot, let me know and I'll see about adding it.
+The only difference here, is that you cannot make a macro that applies universally to all 
+of your timers. You would need to make one macro for each timer you have created. This is
+why it is better to submit a pull request or contact me with your ideas, so that all of us
+who use BlockNot can benefit through continual improvement of the library.
 
 ## Memory
 
@@ -477,9 +521,9 @@ BlockNot timer4(3460); //not included in global reset
 
 ## Millis() Rollover
 I've been contacted by a few people who have expressed concern with possible problems in timing when the
-Arduino millis() counter rolls over in approximately 50 days after initial power up.
+Arduino millis() counter rolls over at approximately 50 days after initial power up.
 
-What I can tell you is that this is not a concern at all, since the way that BlockNot uses millis(), your timers
+What I can tell you is that this is not a concern at all, because of the way that BlockNot uses millis(), your timers
 will still calculate properly even if millis() rolls over in the duration of a timer. I've tested BlockNot using
 simulated values for millis() to artifically create a rollover scenario and I can tell you that it indeed
 works properly through a rollover.
@@ -489,6 +533,10 @@ in detail if you're interested.
 
 ## Version Update Notes
 
+### 1.8.5
+- Added TRIGGERED_ALL and TRIGGERED_ON_MARK macros.
+- Completely re-wrote the triggeredOnDuration section of this README to condense the verbiage and simplify the concept. Also changed the graphs used to explain it so that they are **much easier** to understand.
+- Added the **Millis() Rollover** section to this README
 
 ### 1.8.4
 - Changed STARTED, RUNNING and STOPPED to ISSTARTED, ISRUNNING and ISSTOPPED to avoid conflict with some libraries. 
