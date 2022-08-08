@@ -6,6 +6,8 @@
 
 #### *** If memory consumption is of interest, scroll down and see the section entitled 'Memory'
 
+#### **** For those of you concerned about the Arduino millis() rollover, scroll to the end and read the discussion on that issue.
+
 ## Getting started immediately
 Here is an example of BlockNot's easiest and most common usage:
 
@@ -472,6 +474,18 @@ BlockNot timer2(5,SECONDS);
 BlockNot timer3(2670,NO_GLOBAL_RESET)
 BlockNot timer4(3460); //not included in global reset
 ````
+
+## Millis() Rollover
+I've been contacted by a few people who have expressed concern with possible problems in timing when the
+Arduino millis() counter rolls over in approximately 50 days after initial power up.
+
+What I can tell you is that this is not a concern at all, since the way that BlockNot uses millis(), your timers
+will still calculate properly even if millis() rolls over in the duration of a timer. I've tested BlockNot using
+simulated values for millis() to artifically create a rollover scenario and I can tell you that it indeed
+works properly through a rollover.
+
+The reason it works has to do with the way CPUs handle binary numbers, and [this article](https://techexplorations.com/guides/arduino/programming/millis-rollover/) can explain it
+in detail if you're interested.
 
 ## Version Update Notes
 
