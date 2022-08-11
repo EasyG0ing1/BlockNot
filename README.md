@@ -1,12 +1,14 @@
 ﻿# BlockNot Arduino Library
 
+## Now Does Microseconds!
+
 **This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code. Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
 
 #### ** Version update notes are at the end of this document
 
 #### *** If memory consumption is of interest, scroll down and see the section entitled 'Memory'
 
-#### **** For those of you concerned about the Arduino millis() rollover, scroll to the end and read the discussion on that issue.
+#### **** For those of you concerned about the Arduino millis() or micros() rollover, scroll towards the end and read section 'Rollover'.
 
 ## Getting started immediately
 Here is an example of BlockNot's easiest and most common usage:
@@ -16,11 +18,12 @@ First, you crate the timer:
 #include <BlockNot.h>   
 BlockNot helloTimer(1300); //In Milliseconds    
 ```
-**OR** 
+**OR optionally** 
 
 ```C++ 
 #include <BlockNot.h>   
-BlockNot helloTimer(15, SECONDS); //Whole Seconds    
+BlockNot helloTimer(15, SECONDS); //Whole Seconds timer    
+BlockNot helloTimer(120000, MICROSECONDS); //Microseconds timer    
 ```
 Then, you just test it to see if it triggered.
 ```C++
@@ -147,44 +150,149 @@ resetAllTimers();
 RESET_TIMERS;
 ```
 
-When you call this method, it first captures the value of millis() then it assigns that value to the 
-startTime of every instantiated timer so that they all reset at precisely the exact same time.
+When you call this method, it first captures the value of micros() or millis() then it assigns that
+value to the startTime of every instantiated timer so that they all reset at precisely the exact 
+same time. And don't worry, if you have a peppered mix of timers each with different base units (
+milliseconds, microseconds etc.) BlockNot will use either millis() or micros() based on each timers 
+individual - currently assigned base unit.
 
 It should be noted that even if you have your project divided into multiple code files, the resetAll 
-method will reset all timers across all of your code ... It is global to your entire program.
+method will reset all timers across all of your code ... It is global to your entire project.
 
-## Seconds / Milliseconds
+## Seconds / Milliseconds / Microseconds
 
-Sometimes you only need to have timers that deal in full seconds, and it can be cumbersome to have to 
-use numbers like 45000 for 45 seconds! You can instantiate a timer with an optional argument to define 
-it as a SECONDS timer like this:
+### About Microseconds ...
+
+Most applications that employ the use of microsecond intervals of time, are typically dealing with 
+events that happen VERY quickly and not - say - HOURS into the future. We're talking like applications
+that step a motor with microsecond durations and microsecond delays between steps, or taking readings
+from a laser distance sensor ... basically, microsecond timers are for events that are happening in 
+less time than a millisecond of time.
+
+For that reason, AND for the reason that Arduino's micros() method rolls over about every 71 MINUTES 
+and 35 seconds, it then becomes a problem if you rely on a microsecond timer that needs to be checked
+at a time mark where the duration of time that has passed is more than 71 minutes and 35 seconds. Because
+BlockNot does not track how many times an Arduino timetable rolls over. That would be an impossible thing
+to write in a library, since the only way that code executes within a library, is when you make 
+calls to the libraries methods. There is no way to write a library that has code that is always
+running in the background as would be entirely possible on a PC. Microcontrollers are very different 
+in that way.
+
+Bottom line, if you need to track intervals of time that are longer than an hour, DON'T USE MICROSECONDS!
+
+## Timer flavors
+When you declare your timers without specifying the units, they will default to millisecond timers, 
+because milliseconds are the most commonly used time units in Arduino programming.
+
+However, you can declare a timer to operate within any time unit you desire. 
+
+For example, when you only need **second** precision, you can declare your timer as a SECONDS timer. It
+can be much easier in terms of writing and reading your code, if you don't need milli or micro second
+precision. It's much simpler to use 23 than 23000 when you only need to know about 23 seconds.
+
+You instantiate your timers with other units like this: 
 ```C++
 BlockNot myTimer(5, SECONDS);
+BlockNot myTimer(14000, MICROSECONDS);
 ```
-This also improves the readability of your code.
+Whichever units you define your timer in, then requires you to interact with your timer in those units.
 
-When you define your timer as a SECONDS timer, any values you read from the timer will be in seconds 
-even though under the hood, time is calculated in milliseconds. The response values will be rounded 
-DOWN. So lets say that the millisecond value is 2999, you will get back 2. Also, any changes you make
-to the timer's duration must be done in seconds and not milliseconds. In other words, once a timer has
-been declared as a SECONDS timer, it only deals with whole seconds.
+Under the hood, BlockNot calculates SECONDS and MILLISECONDS using the millis() method, where MICROSECOND
+timers use the micros() method.
 
-The exception to getting back seconds when you query the timer for values, is when you use either of these:
+Whichever units a timer is in when it is first declared, is referred to as the timers **base units**.
+
+When you read values from your timer, by default, you will always get back a value that is in the
+base units of the timer. 
+
+For example, these
 ````C++
 myTimer.GET_START_TIME;
 myTimer.getStartTime();
 ````
-That value will always be in milliseconds since it is always recorded as millis() and is used for 
-all timer calculations where the starting time of the timer is relevant.
+will always return a value that is in the units the timer is declared in.
 
+It needs to be noted, that in a SECONDS timer, the numbers that are returned when needing a value,
+will ALWAYS be rounded DOWN, so that if the value being returned, for example is 14600000 (which would
+be the microsecond value), this is equal to 14,600 milliseconds or 14.6 seconds, but the value returned, will be 14.
+
+But it should be understood that fractional second precision should never be expected when declaring 
+a SECONDS timer. if you need fractional second precision, then use the default MILLISECONDS timer.
+
+### Converting Units
+Because program storage space is extremely valuable with microcontrollers, I decided to offer the
+convert method as opposed to writing methods and macros for every option available where values
+of interest might be needed. The convert method will convert from the units that your timer is
+declared in, to whichever DESIRED units are passed into the method.
+
+The convert method uses this structure
+```C++
+unsigned long desiredValue = myTimer.convert(valueOfInterest, UNIT_DESIRED);
+```
+- The number returned will always be an unsigned long.
+
+- ```valueOfInterest``` MUST be an unsigned long, or a long that is not negative
+- ```UNIT_DESIRED``` MUST be either ```SECONDS```, ```MILLISECONDS``` or ```MICROSECONDS```
+
+For example, lets say that we have declared a timer as a MILLISECONDS timer, but we are interested
+in knowing how many SECONDS or MICROSECONDS remain until the timer triggers again. We can get those
+values in different units like this:
+```C++
+value = myTimer.convert(myTimer.TIME_TILL_TRIGGER, SECONDS);
+value = myTimer.convert(myTimer.TIME_TILL_TRIGGER, MICROSECONDS);
+```
+
+The ```convert()``` method can be used to convert ANY value into whichever units you need, but 
+realize that the value you pass into the method will be assumed to be in the timers base units.
+
+Any of these methods can be passed into the convert() method to obtain their values in whichever
+unit you desire (desired units in this example were chosen randomly).
+```C++
+myTimer.convert(myTimer.getTimeUntilTrigger(), SECONDS)
+myTimer.convert(myTimer.getNextTriggerTime(), MILLISECONDS)
+myTimer.convert(myTimer.getStartTime(), SECONDS)
+myTimer.convert(myTimer.getDuration(), MICROSECONDS)
+myTimer.convert(myTimer.getTimeSinceLastReset(), MILLISECONDS)
+```
+Here is what each of these methods provides:
+- ```getTimeUntilTrigger()``` returns a value that is relative to the timer's duration. So if the duration is set to 1350ms, and it has been 500ms since it last triggered, the returned value will be 850ms
+- ```getNextTriggerTime()``` will return a value that is relative to the microcontrollers internal micros() or millis() value, which will be the timers current startTime PLUS the timer's duration
+- ```getStartTime()``` returns the value of the CPUs micros() or millis() method that was recorded as the timers current startTime
+- ```getDuration()``` Simply returns the duration that is currently set in the timer (the duration you assign when you create the timer, or the one that you changed it to after the fact)
+- ```getTimeSinceLastReset()``` returns a value that represents how much time has elapsed since the timer was last reset. It does not consider trigger events, but only the current startTime.
+### Changing Values
+When you need to change a timers' duration, or you need to add or subtract time to the timer's duration,
+you MUST pass numbers into those arguments that are in the timers base unit.
+
+So if, for example, you declared the timer as a SECONDS timer, and you want to change the duration to
+be 10 seconds, you must do so like this
+```C++
+myTimer.setDuration(10);
+```
+And if you have declared a timer in MILLISECONDS, and you want to add or subtract 2300 milliseconds
+to the timers duration
+```C++
+myTimer.addTime(2300);
+myTimer.takeTime(2300);
+```
+
+### Switching Base Units
 If you need to switch the timers base units, you can do so like this:
 ````C++
+myTimer.switchTo(MICROSECONDS);
 myTimer.switchTo(MILLISECONDS);
 myTimer.switchTo(SECONDS);
 ````
-Though I cannot imagine why anyone would want to do this, I included the feature for flexibility / options.
-Time is always calculated in milliseconds under the hood, so no need to ever worry about needing to do those
-conversions. Just know that however you declare the timers units, you must deal with it in those units.
+Once you have changed the base units, then obviously, values returned from methods will be returned
+in the new base unit, and values given to the timer will be assumed to be in the new base unit that 
+you switched it to.
+
+Using ```switchTo()``` is no different from originally declaring the timer in the base unit that you
+switch it to.
+
+Though I cannot imagine why anyone would want to do this, I included the feature for flexibility. 
+Just know that however you declare the timers units, you must deal with it in those units, or use
+the convert method to get your answers in different units.
 
 ## Start / Stop
 
@@ -210,7 +318,8 @@ These methods will return a ZERO by default when a timer is stopped (or whicheve
 
 ### How do I choose what number is returned on a stopped timer?
 
-Once you create your timer, you simply set thhe value using this method:
+You can declare the return value when you create the timer (see the constructors in the .h file), OR,
+once you create your timer, you simply set the value using this method:
 ```C++
 setStoppedReturnValue(8675309);
 ```
@@ -237,7 +346,11 @@ myTimer.TOGGLE;
 ```  
 Why would you want to just change the state with one line of code? Perhaps you have a toggle button that will toggle a timer to be started or stopped ... you can assign the one command to the button and everything is handled.
 
-```C++  
+```C++
+#define BUTTON_PRESSED digitalRead(BUTTON) == LOW
+
+pinMode(BUTTON, INPUT_PULLUP);
+
 if (BUTTON_PRESSED) {  
    myTimer.TOGGLE;
  }  
@@ -250,7 +363,7 @@ wrote this method), but I have done my best to explain it as simply as possible.
 
 There might be times when it becomes necessary to respect a timers trigger in the context of
 its **duration**, so that when a timers trigger is checked, it then resets its ```startTime``` to a time that is 
-relative to its duration rather than simply resetting to the current value of ```millis()```.
+relative to its duration rather than simply resetting to the current value of ```micros()``` or ```millis()```.
 
 ```triggeredOnDuration()``` Does this with two optional results.
 
@@ -413,24 +526,25 @@ Below you will find the name of each method in the library and any arguments tha
 * **setDuration()** - Override the current timer duration and set it to a new value. This also resets the timer. If you need the timer to NOT reset, then pass arguments like this (newDuration, NO_RESET);
 * **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer. To also reset the timer, call the method like this **addTime(newTime, WITH_RESET);**
 * **takeTime()** - The opposite effect of addTime(), same deal if you want to also reset the timer.
-* **triggered()** - Returns true if the duration time has passed. Also resets the timer to the current millis() (override by passing NO_RESET as an argument).
+* **triggered()** - Returns true if the duration time has passed. Also resets the timer to the current ```micros()``` or ```millis()``` (override by passing NO_RESET as an argument).
 * **triggeredOnDuration()** - See section above entitled **Triggered On Duration** for complete discussion.
 * **notTriggered()** - Returns true if the trigger event has not happened yet.
 * **firstTrigger()** - Returns true only once and only after the timer has triggered.
 * **getNextTriggerTime()** - Returns an unsigned long of the next time that the timer will trigger. If it has triggered, it will return 0.
-* **getTimeUntilTrigger()** - Returns an unsigned long with the number of milliseconds remaining until the trigger event happens.
-* **getStartTime()** - Returns an unsigned long, The value of millis() that was recorded at the last reset of the timer.
+* **getTimeUntilTrigger()** - Returns an unsigned long with the number of microseconds remaining until the trigger event happens, converted to the timers base units.
+* **getStartTime()** - Returns an unsigned long, The value of ```micros()``` or  ```millis()``` that was recorded at the last reset of the timer, converted to the timers currently assigned base unit.
 * **getDuration()** - Returns an unsigned long, the duration that is currently set in the timer.
-* **getTimeSinceLastReset()** - Returns an unsigned long with the number of milliseconds that have passed since the timer was last reset or instantiated.
+* **getUnits()** - Returns a String of the assigned base units of the timer; Seconds, Milliseconds or Microseconds.
+* **getTimeSinceLastReset()** - Returns an unsigned long indicating how much time has passed since the timer was last reset or instantiated. Response will be in the base units of the timer.
 * **setStoppedReturnValue()** - Lets you set the value returned for those methods that return numbers, when the timer is stopped. 
 * **start()** - starts the timer (timers are started by default when you create them).
 * **stop()** - stops the timer.
 * **isRunning()** - returns true if the timer is not stopped.
 * **isStopped()** - returns true if the timer is stopped.
 * **toggle()** - Toggles the start and stopped state so that you only need to call this one method - like in a push button toggle situation.
-* **switchTo()** - Change the timer from SECONDS to MILLISECONDS or vice versa.
-* **reset()** - Sets the start time of the timer to the current millis().
-* **resetAllTimers()** - loops through all timers that you created and resets startTime to millis(), which is recorded once and applied to all timers so they will all have the exact same startTime. See **Memory** section for further discussion.
+* **switchTo()** - Change the timer from whichever base unit it currently is, over to SECONDS, MILLISECONDS or MICROSECONDS.
+* **reset()** - Sets the start time of the timer to the current micros() or millis depending on its currently assigned base unit.
+* **resetAllTimers()** - loops through all timers that you created and resets startTime to ```micros()``` or ```millis()``` depending on the timers currently assigned base unit, which is recorded once and applied to all timers, so they will all have the exact same startTime. See **Memory** section for further discussion.
 
 # Macros
 
@@ -519,19 +633,26 @@ BlockNot timer3(2670,NO_GLOBAL_RESET)
 BlockNot timer4(3460); //not included in global reset
 ````
 
-## Millis() Rollover
+## Rollover
 I've been contacted by a few people who have expressed concern with possible problems in timing when the
-Arduino millis() counter rolls over at approximately 50 days after initial power up.
+Arduino ```millis()``` or ```micros()``` counter rolls over (millis() at approximately 50 days and micros() at around 70 minutes) after power up.
 
-What I can tell you is that this is not a concern at all, because of the way that BlockNot uses millis(), your timers
-will still calculate properly even if millis() rolls over in the duration of a timer. I've tested BlockNot using
-simulated values for millis() to artifically create a rollover scenario and I can tell you that it indeed
-works properly through a rollover.
+First and foremost, **DON'T USE MICROSECOND TIMERS WHEN YOU CAN USE MILLISECONDS INSTEAD**
 
-The reason it works has to do with the way CPUs handle binary numbers, and [this article](https://techexplorations.com/guides/arduino/programming/millis-rollover/) can explain it
+The whole issue about rollover **is not a concern at all**, because
+of the way that BlockNot uses ```micros()``` and ```millis()```, your timers will still calculate properly even if the
+```micros()``` or ```millis()``` value rolls over in the duration of a timer. I've tested BlockNot using simulated values to
+artificially create a rollover scenario and I can tell you that it indeed works properly through a
+rollover.
+
+The reason it works has to do with the way CPUs handle binary numbers where there is no possibilty of the number 
+being negative, and [this article](https://techexplorations.com/guides/arduino/programming/millis-rollover/) can explain it
 in detail if you're interested.
 
 ## Version Update Notes
+
+### 2.0.0
+- Upgraded the entire library so that it can accommodate all time units down to microseconds. You can now use BlockNot as a SECONDS, MILLISECONDS or MICROSECONDS timer. An upgrade worthy of being labeled - 2.0
 
 ### 1.8.5
 - Added TRIGGERED_ALL and TRIGGERED_ON_MARK macros.
