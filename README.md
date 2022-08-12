@@ -1,16 +1,48 @@
 ﻿# BlockNot Arduino Library
+This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code.
 
-## Now Does Microseconds!
+**Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
+# Table of Contents
+<!-- TOC -->
+* [Quick Start](#quick-start)
+* [Theory behind BlockNot](#theory-behind-blocknot)
+* [How To Use BlockNot](#how-to-use-blocknot)
+  * [The Trigger](#the-trigger)
+    * [One Time Trigger](#one-time-trigger)
+    * [Triggered OnDuration](#triggered-onduration)
+        * [Default Behavior](#default-behavior)
+      * [OnDuration(ALL)](#onduration--all-)
+  * [The Reset](#the-reset)
+    * [Global Reset](#global-reset)
+  * [Time Unit Options](#time-unit-options)
+    * [Default](#default)
+    * [Other Units](#other-units)
+      * [BlockNot Assumptions](#blocknot-assumptions)
+      * [Microseconds](#microseconds)
+    * [Converting Units](#converting-units)
+    * [Changing Values](#changing-values)
+    * [Switching Base Units](#switching-base-units)
+  * [Start / Stop](#start--stop)
+    * [Return Values on Stopped Timers](#return-values-on-stopped-timers)
+  * [Summary](#summary)
+* [Examples](#examples)
+    * [BlockNotBlink](#blocknotblink)
+    * [BlockNotBlinkParty](#blocknotblinkparty)
+    * [DurationTrigger](#durationtrigger)
+    * [OnWithOffTimers](#onwithofftimers)
+    * [ResetAll](#resetall)
+    * [TimersRules](#timersrules)
+* [Library](#library)
+  * [Methods](#methods)
+  * [Macros](#macros)
+* [Discussion](#discussion)
+  * [Memory](#memory)
+  * [Rollover](#rollover)
+* [Version Update Notes](#version-update-notes)
+* [Suggestions](#suggestions)
+<!-- TOC -->
 
-**This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code. Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
-
-#### ** Version update notes are at the end of this document
-
-#### *** If memory consumption is of interest, scroll down and see the section entitled 'Memory'
-
-#### **** For those of you concerned about the Arduino millis() or micros() rollover, scroll towards the end and read section 'Rollover'.
-
-## Getting started immediately
+# Quick Start
 Here is an example of BlockNot's easiest and most common usage:
 
 First, you crate the timer:
@@ -34,7 +66,7 @@ Then, you just test it to see if it triggered.
  That is all you need to start using BlockNot. Keep reading to learn about other features of the library.  
   
     
-## Theory behind BlockNot    
+# Theory behind BlockNot    
  This is a traditional non-blockling timer:  
   
 ```C++  
@@ -67,6 +99,7 @@ Here is a simple graph showing you how BlockNot timers work. What's important he
 
 ![](./img/visual.png)
 
+# How To Use BlockNot
 ## The Trigger
 
 BlockNot is all about the trigger event. When runners line up to start a race, it is a traditional practice 
@@ -81,7 +114,7 @@ if (voltageReadTimer.TRIGGERED) {
 }  
 ```   
 
-### Trigger Only Once
+### One Time Trigger
 
 I have personally found it quite handy in some scenarios, to be able to get a boolean true response after the
 timer has triggered, but only once, so that the code which executes after getting a true response only executes
@@ -120,7 +153,98 @@ won't execute over and over again each time the loop encounters the check. Yet w
 the sleep timer is reset and when it becomes idle again for 25 seconds, it is put to sleep. This helps efficiency 
 in your program, and it conserves valuable CPU time.
 
-**There is an advanced trigger called triggerOnDuration that is discussed below and is for very special use cases.**
+### Triggered OnDuration
+
+This topic is a little tricky to comprehend (myself included as I
+wrote this method), but I have done my best to explain it as simply as possible.
+
+There might be times when it becomes necessary to respect a timers trigger in the context of
+its **duration**, so that when a timers trigger is checked, it then resets its ```startTime``` to a time that is
+relative to its duration rather than simply resetting to the current value of ```micros()``` or ```millis()```.
+
+```triggeredOnDuration()``` Does this with two optional results.
+
+##### Default Behavior
+Let's use a timer that is set to a duration of 500ms as our example.
+
+You test it for TRIGGER by using either the macros or the method
+```CPP
+myTimer.TRIGGERED_ON_DURATION
+myTimer.TRIGGERED_ON_MARK
+myTimer.triggeredOnDuration()
+```
+BlockNot views the timer as having rigid trigger marks that happen exactly 500ms apart. So
+if you check the timer - say 700ms after you start it, you will get a TRUE response and
+it will trigger again in 300ms instead of 500ms because BlockNot will set the startTime
+back to 500ms and not the current time of 700.
+
+So lets say we are well into the passage of time, and you test for trigger at time index 2830 ...
+BlockNot will return ```TRUE``` and then set the startTime back to 2500 so it will trigger again at 3000.
+
+The idea is that you can have a timer that will provide the ability to run code on a consistent pulse where each pulse
+happens exactly at every interval of time based on the timers duration, and you can have your code execute
+as close to those 'pulse marks' as possible.
+
+#### OnDuration(ALL)
+
+```triggeredOnDuration(ALL)``` works exactly as ```triggeredOnDuration()``` EXCEPT that BlockNot
+will continue to return a ```TRUE``` result until every missed mark is accounted for.
+
+You can test for TRIGGERED using these macros or the method
+```CPP
+myTimer.TRIGGERED_ON_DURATION_ALL
+myTimer.TRIGGERED_ALL
+myTimer.triggeredOnDuration(ALL)
+```
+Continuing with our 500ms duration timer, if you test it at time index 1250 then again at
+time index 1300, you will get a TRUE response for both tests, since you missed the first
+mark at 500, but then tested after the second mark at 1000. If you tested again before
+1500, you would get a ```FALSE``` response.
+
+These graphs show you what will happen as time advances and you test for TRIGGERED
+using this method.
+
+A green Test means you tested and got TRUE while red means you got FALSE.
+
+This is how the standard TRIGGERED event responds:
+
+![](./img/cmpTRIGGERED.png)
+
+This visualises how ```TRIGGERED_ON_DURATION``` / ```TRIGGERED_ON_MARK``` works.
+
+![](./img/cmpONMARK.png)
+
+Notice how you can get a TRUE response immediately before and immediately after a trigger
+event. BlockNot is giving you a TRUE response for the trigger that happened at time index
+2500, then it gives a TRUE response for the trigger that happened at time index 3000. But
+when you test again before 3500, you will get a FALSE response.
+
+Here is how ```TRIGGERED_ON_DURATION_ALL``` / ```TRIGGERED_ALL``` works.
+
+![](./img/cmpONDURATION.png)
+
+Notice you got FOUR consecutive TRUE results in a row. This is because you missed three triggers
+, then you tested twice, then at a trigger point, then once again, and the 5th time you tested,
+your test happened before the next trigger and all of the missed trigger events had been accounted
+for, so you get a FALSE response.
+
+A possible use case for the ALL trigger test would be when using a timer as a sync counter of sorts. And to explain that, I
+am going to use an extreme example that should illustrate the point... Lets say that you have a project that
+must automatically water plants at least six times every hour. It doesn't matter if the plants are watered every 10
+minutes, or if they are watered once, then 15 minutes later, then again 5 minutes later etc., as long as they are
+watered six times every hour.
+
+We would define this timer as follows:
+```CPP
+BlockNot waterTimer = BlockNot(600, SECONDS); //10 minute duration
+```
+
+Let's also assume that your code is so busy doing other things, that it might not
+be able to check the trigger on that timer - possibly even after two full durations have passed.
+When you check the trigger using ```TRIGGERED_ALL```, that will cause BlockNot to continue giving
+you a TRUE response until each missed trigger has been provided to you.
+
+See the example sketch called **DurationTrigger** to see this method in action.
 
 ## The Reset
 
@@ -138,7 +262,7 @@ The startTime **does not reset** and that test will always come back true every 
 code, as long as the timer's duration has passed. The exception of course would be using the FIRST_TRIGGER
 method.
 
-## Reset All Timers
+### Global Reset
 
 Sometimes, having the ability to reset all of your timers at the exact same time is handy. There are situations,
 for example, when you need things to happen in a specific timed order and to do so repeatedly. This is possible
@@ -159,32 +283,14 @@ individual - currently assigned base unit.
 It should be noted that even if you have your project divided into multiple code files, the resetAll 
 method will reset all timers across all of your code ... It is global to your entire project.
 
-## Seconds / Milliseconds / Microseconds
+## Time Unit Options
 
-### About Microseconds ...
-
-Most applications that employ the use of microsecond intervals of time, are typically dealing with 
-events that happen VERY quickly and not - say - HOURS into the future. We're talking like applications
-that step a motor with microsecond durations and microsecond delays between steps, or taking readings
-from a laser distance sensor ... basically, microsecond timers are for events that are happening in 
-less time than a millisecond of time.
-
-For that reason, AND for the reason that Arduino's micros() method rolls over about every 71 MINUTES 
-and 35 seconds, it then becomes a problem if you rely on a microsecond timer that needs to be checked
-at a time mark where the duration of time that has passed is more than 71 minutes and 35 seconds. Because
-BlockNot does not track how many times an Arduino timetable rolls over. That would be an impossible thing
-to write in a library, since the only way that code executes within a library, is when you make 
-calls to the libraries methods. There is no way to write a library that has code that is always
-running in the background as would be entirely possible on a PC. Microcontrollers are very different 
-in that way.
-
-Bottom line, if you need to track intervals of time that are longer than an hour, DON'T USE MICROSECONDS!
-
-## Timer flavors
+### Default
 When you declare your timers without specifying the units, they will default to millisecond timers, 
 because milliseconds are the most commonly used time units in Arduino programming.
 
-However, you can declare a timer to operate within any time unit you desire. 
+### Other Units
+You can declare a timer to operate within any time unit you desire, as long as the time unit you desire is either SECONDS, MILLISECONDS or MICROSECONDS. 
 
 For example, when you only need **second** precision, you can declare your timer as a SECONDS timer. It
 can be much easier in terms of writing and reading your code, if you don't need milli or micro second
@@ -195,29 +301,57 @@ You instantiate your timers with other units like this:
 BlockNot myTimer(5, SECONDS);
 BlockNot myTimer(14000, MICROSECONDS);
 ```
-Whichever units you define your timer in, then requires you to interact with your timer in those units.
-
 Under the hood, BlockNot calculates SECONDS and MILLISECONDS using the millis() method, where MICROSECOND
 timers use the micros() method.
 
-Whichever units a timer is in when it is first declared, is referred to as the timers **base units**.
+#### BlockNot Assumptions
+
+When a timer is declared as a SECONDS, MILLISECONDS, or MICROSECONDS timer, the unit you choose is referred to as the timers **base units**.
+
+You MUST interact with your timer, in the base units you declared it as or in the base units you switch it to (discussed below).
 
 When you read values from your timer, by default, you will always get back a value that is in the
 base units of the timer. 
 
 For example, these
 ````C++
+BloclNot myTimer(50000, MICROSECONDS);
+
 myTimer.GET_START_TIME;
 myTimer.getStartTime();
 ````
-will always return a value that is in the units the timer is declared in.
+will always return a value in MICROSECONDS.
 
-It needs to be noted, that in a SECONDS timer, the numbers that are returned when needing a value,
-will ALWAYS be rounded DOWN, so that if the value being returned, for example is 14600000 (which would
-be the microsecond value), this is equal to 14,600 milliseconds or 14.6 seconds, but the value returned, will be 14.
+And
 
-But it should be understood that fractional second precision should never be expected when declaring 
-a SECONDS timer. if you need fractional second precision, then use the default MILLISECONDS timer.
+```C++
+BloclNot myTimer(50000, SECONDS);
+
+myTimer.GET_START_TIME;
+myTimer.getStartTime();
+```
+will always return a value in SECONDS.
+
+It needs to be noted that in a SECONDS timer, the numbers that are returned when seeking a value,
+will ALWAYS be rounded DOWN. So if, for example, you have a SECONDS timer, and you request the value 
+for the number of seconds remaining until the next trigger, and BlockNot calculates that value to be
+8700 milliseconds. You will get 8 SECONDS back in response.
+
+This shouldn't be a problem, because if you need fractional second accuracy, then use a millisecond timer.
+
+#### Microseconds
+MICROSECONDS are almost always used in situations when you need to reference time durations that 
+are faster than a millisecond. Therefore, NEVER use a MICROSECONDS timer when you need to evaluate
+time in durations longer than an hour, because the Arduino rolls the micros() counter after roughly
+one hour (read discussion on rollover below) and BlockNot has no way of knowing how often that counter
+rolls over. It can and will calculate durations accurately when a rollover happens in between TRIGGERED
+events, but when more than one of these events happens in between TRIGGERED events, BlockNot will not
+be able to know about those rollovers and your results will be inaccurate.
+
+Realistically, you should never use a MICROSECONDS timer if your event durations are always longer
+than one million microseconds, and certainly you should never use a MICROSECONDS timer for durations
+longer than an hour. **If you need to track intervals of time that are longer than an hour, 
+USE SECONDS OR MICROSECONDS!**
 
 ### Converting Units
 Because program storage space is extremely valuable with microcontrollers, I decided to offer the
@@ -316,7 +450,7 @@ These methods will return a ZERO by default when a timer is stopped (or whicheve
 *    **getTimeUntilTrigger()**
 *    **timeSinceLastReset()**
 
-### How do I choose what number is returned on a stopped timer?
+### Return Values on Stopped Timers
 
 You can declare the return value when you create the timer (see the constructors in the .h file), OR,
 once you create your timer, you simply set the value using this method:
@@ -356,98 +490,6 @@ if (BUTTON_PRESSED) {
  }  
 ```  
 
-## Triggered OnDuration
-
-I saved the best for last (tongue in cheek) ... this topic is a little tricky to comprehend (myself included as I
-wrote this method), but I have done my best to explain it as simply as possible.
-
-There might be times when it becomes necessary to respect a timers trigger in the context of
-its **duration**, so that when a timers trigger is checked, it then resets its ```startTime``` to a time that is 
-relative to its duration rather than simply resetting to the current value of ```micros()``` or ```millis()```.
-
-```triggeredOnDuration()``` Does this with two optional results.
-
-### Default Behavior
-Let's use a timer that is set to a duration of 500ms as our example.
-
-You test it for TRIGGER by using either the macros or the method
-```CPP
-myTimer.TRIGGERED_ON_DURATION
-myTimer.TRIGGERED_ON_MARK
-myTimer.triggeredOnDuration()
-```
-BlockNot views the timer as having rigid trigger marks that happen exactly 500ms apart. So
-if you check the timer - say 700ms after you start it, you will get a TRUE response and
-it will trigger again in 300ms instead of 500ms because BlockNot will set the startTime
-back to 500ms and not the current time of 700. 
-
-So lets say we are well into the passage of time, and you test for trigger at time index 2830 ... 
-BlockNot will return ```TRUE``` and then set the startTime back to 2500 so it will trigger again at 3000.
-
-The idea is that you can have a timer that will provide the ability to run code on a consistent pulse where each pulse
-happens exactly at every interval of time based on the timers duration, and you can have your code execute
-as close to those 'pulse marks' as possible.
-
-### OnDuration(ALL)
-
-```triggeredOnDuration(ALL)``` works exactly as ```triggeredOnDuration()``` EXCEPT that BlockNot
-will continue to return a ```TRUE``` result until every missed mark is accounted for.
-
-You can test for TRIGGERED using these macros or the method
-```CPP
-myTimer.TRIGGERED_ON_DURATION_ALL
-myTimer.TRIGGERED_ALL
-myTimer.triggeredOnDuration(ALL)
-```
-Continuing with our 500ms duration timer, if you test it at time index 1250 then again at
-time index 1300, you will get a TRUE response for both tests, since you missed the first
-mark at 500, but then tested after the second mark at 1000. If you tested again before
-1500, you would get a ```FALSE``` response.
-
-These graphs show you what will happen as time advances and you test for TRIGGERED
-using this method.
-
-A green Test means you tested and got TRUE while red means you got FALSE.
-
-This is how the standard TRIGGERED event responds:
-
-![](./img/cmpTRIGGERED.png)
-
-This visualises how ```TRIGGERED_ON_DURATION``` / ```TRIGGERED_ON_MARK``` works.
-
-![](./img/cmpONMARK.png)
-
-Notice how you can get a TRUE response immediately before and immediately after a trigger
-event. BlockNot is giving you a TRUE response for the trigger that happened at time index
-2500, then it gives a TRUE response for the trigger that happened at time index 3000. But
-when you test again before 3500, you will get a FALSE response.
-
-Here is how ```TRIGGERED_ON_DURATION_ALL``` / ```TRIGGERED_ALL``` works.
-
-![](./img/cmpONDURATION.png)
-
-Notice you got FOUR consecutive TRUE results in a row. This is because you missed three triggers
-, then you tested twice, then at a trigger point, then once again, and the 5th time you tested,
-your test happened before the next trigger and all of the missed trigger events had been accounted
-for, so you get a FALSE response.
-
-A possible use case for the ALL trigger test would be when using a timer as a sync counter of sorts. And to explain that, I 
-am going to use an extreme example that should illustrate the point... Lets say that you have a project that 
-must automatically water plants at least six times every hour. It doesn't matter if the plants are watered every 10
-minutes, or if they are watered once, then 15 minutes later, then again 5 minutes later etc., as long as they are
-watered six times every hour. 
-
-We would define this timer as follows:
-```CPP
-BlockNot waterTimer = BlockNot(600, SECONDS); //10 minute duration
-```
-
-Let's also assume that your code is so busy doing other things, that it might not 
-be able to check the trigger on that timer - possibly even after two full durations have passed.
-When you check the trigger using ```TRIGGERED_ALL```, that will cause BlockNot to continue giving
-you a TRUE response until each missed trigger has been provided to you. 
-
-See the example sketch called **DurationTrigger** to see this method in action. 
 
 ## Summary
 
@@ -516,12 +558,11 @@ These examples barely scratch the surface of what you can accomplish with BlockN
 
 - Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
 
-# Methods
-
+# Library
+## Methods
 Below you will find the name of each method in the library and any arguments that it accepts. Below that list, you will find the names of the macros that are connected to each method along with the arguments that a given macro may or may not pass to the method. The macros are key to making your code simple.
 
 ** For any method call that resets a timer by default, the resetting behavior can be overridden by passing **NO_RESET** into the methods argument, the exception to this is the triggeredOnDuration() method, which exists because of the way it resets your timer, so overriding reset would make the method useless.
-
 
 * **setDuration()** - Override the current timer duration and set it to a new value. This also resets the timer. If you need the timer to NOT reset, then pass arguments like this (newDuration, NO_RESET);
 * **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer. To also reset the timer, call the method like this **addTime(newTime, WITH_RESET);**
@@ -546,7 +587,7 @@ Below you will find the name of each method in the library and any arguments tha
 * **reset()** - Sets the start time of the timer to the current micros() or millis depending on its currently assigned base unit.
 * **resetAllTimers()** - loops through all timers that you created and resets startTime to ```micros()``` or ```millis()``` depending on the timers currently assigned base unit, which is recorded once and applied to all timers, so they will all have the exact same startTime. See **Memory** section for further discussion.
 
-# Macros
+## Macros
 
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
 
@@ -600,6 +641,7 @@ of your timers. You would need to make one macro for each timer you have created
 why it is better to submit a pull request or contact me with your ideas, so that all of us
 who use BlockNot can benefit through continual improvement of the library.
 
+# Discussion
 ## Memory
 
 I have compiled BlockNot in a variety of scenarios. The only difference between each specific scenario is that I
@@ -649,7 +691,7 @@ The reason it works has to do with the way CPUs handle binary numbers where ther
 being negative, and [this article](https://techexplorations.com/guides/arduino/programming/millis-rollover/) can explain it
 in detail if you're interested.
 
-## Version Update Notes
+# Version Update Notes
 
 ### 2.0.0
 - Upgraded the entire library so that it can accommodate all time units down to microseconds. You can now use BlockNot as a SECONDS, MILLISECONDS or MICROSECONDS timer. An upgrade worthy of being labeled - 2.0
@@ -720,7 +762,7 @@ Thank you [@bizprof](https://github.com/bizprof) for contributing this feature t
 
 - **Added SECONDS Mode** - Explained in this README (scroll up)
 
-## Suggestions
+# Suggestions
 
 I welcome any and all suggestions for changes or improvements. You can either open an issue, or code the change yourself and create a pull request. This library is for all of us and making it the best it can be is important! 
 
