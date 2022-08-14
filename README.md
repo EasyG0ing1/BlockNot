@@ -438,6 +438,11 @@ it will return a ZERO by default, although you can change what number it returns
 methods, as long as the number you set is a positive number (BlockNot does not ever deal with 
 negative numbers, since time in our universe always moves forward).
 
+I've used STOP and START when stepping motors, where the delay between steps is defined in a
+MICROSECONDS timer (where the duration is constantly changing based on the value of RPMs) but
+when the RPMs are set to 0, then I simply STOP the timer and stepping  will not occur. When RPMs 
+are above 0, then I START the timer and stepping resumes.
+
 These methods will ALWAYS return false when a timer is stopped (for macro calls see the Macro 
 section of this document):
 
