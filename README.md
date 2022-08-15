@@ -707,6 +707,10 @@ discussion in that sketch.
 
 # Version Update Notes
 
+### 2.0.3
+- Added undocumented methods to facilitate testing of millis() rollover.
+- Added sketch to demonstrate how BlockNot works through millis() rollover.
+
 ### 2.0.0
 - Upgraded the entire library so that it can accommodate all time units down to microseconds. You can now use BlockNot as a SECONDS, MILLISECONDS or MICROSECONDS timer. An upgrade worthy of being labeled - 2.0
 
