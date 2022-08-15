@@ -510,7 +510,7 @@ There are more methods that allow you to affect change on your timers after inst
 
 # Examples
 
-There are currently six examples in the library.
+There are currently seven examples in the library.
 
 ### BlockNotBlink
 
@@ -557,11 +557,15 @@ stopAfterThreeTimer.  When you look at the number of milliseconds in each of the
 outputs, you can see that indeed it does trigger three seconds after being reset, 
 but then it does not re-trigger until after it is reset again.
 
-These examples barely scratch the surface of what you can accomplish with BlockNot.
-
-![](./img/timeGraph.png)
-
 - Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
+### MillisRolloverTest
+
+  This sketch was added to demonstrate that BlockNot can and does properly calculate
+  timer durations even when millis() rolls over. See the discussion further down
+  on that topic.
+
+  These examples barely scratch the surface of what you can accomplish with BlockNot.
+
 
 # Library
 ## Methods
@@ -695,6 +699,11 @@ rollover.
 The reason it works has to do with the way CPUs handle binary numbers where there is no possibilty of the number 
 being negative, and [this article](https://techexplorations.com/guides/arduino/programming/millis-rollover/) can explain it
 in detail if you're interested.
+
+I have added an example sketch called ```MillisRolloverTest.ino``` that will demonstrate how well
+BlockNot calculates timer durations even through millis() rollovers, by artifically inflating the 
+value of millis() and calculating the time difference between trigger events. There is more
+discussion in that sketch.
 
 # Version Update Notes
 

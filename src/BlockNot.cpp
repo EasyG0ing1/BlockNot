@@ -330,14 +330,22 @@ void BlockNot::reset(const unsigned long newStartTime) {
                 finalStartTime = micros();
                 break;
             case MILLISECONDS:
-                finalStartTime = millis();
+                finalStartTime = millis() + millisOffset;
                 break;
             case SECONDS:
-                finalStartTime = millis();
+                finalStartTime = millis() + millisOffset;
                 break;
         }
     }
     resetTimer(finalStartTime);
+}
+
+void BlockNot::setMillisOffset(unsigned long offset) {
+    millisOffset = offset;
+}
+
+unsigned long BlockNot::getMillis() {
+    return millis() + millisOffset;
 }
 
 /*
@@ -370,10 +378,10 @@ unsigned long BlockNot::timeSinceReset() {
             result = micros() - startTime;
             break;
         case MILLISECONDS:
-            result = millis() - startTime;
+            result = millis() + millisOffset - startTime;
             break;
         case SECONDS:
-            result = millis() - startTime;
+            result = millis() + millisOffset - startTime;
             break;
     }
     return result;

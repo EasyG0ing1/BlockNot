@@ -141,6 +141,10 @@ public:
 
     void reset(const unsigned long newStartTime = 0);
 
+    void setMillisOffset(unsigned long offset);
+
+    unsigned long getMillis();
+
     static BlockNot *getFirstTimer() { return firstTimer; }
 
     BlockNot *getNextTimer() { return nextTimer; }
@@ -150,6 +154,7 @@ private:
      * Private Variables and Methods
      */
     unsigned long startTime;
+    unsigned long millisOffset = 0;
     unsigned long timerStoppedReturnValue = 0;
     int totalMissedDurations = 0;
     bool timerRunning = true;
