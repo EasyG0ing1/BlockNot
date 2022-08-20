@@ -26,12 +26,13 @@ This library enables you to create non-blocking timers using simple, common sens
     * [Return Values on Stopped Timers](#return-values-on-stopped-timers)
   * [Summary](#summary)
 * [Examples](#examples)
-    * [BlockNotBlink](#blocknotblink)
-    * [BlockNotBlinkParty](#blocknotblinkparty)
-    * [DurationTrigger](#durationtrigger)
-    * [OnWithOffTimers](#onwithofftimers)
-    * [ResetAll](#resetall)
-    * [TimersRules](#timersrules)
+    * [BlockNot Blink](#blocknotblink)
+    * [BlockNot Blink Party](#blocknotblinkparty)
+    * [Button Debounce](#buttondebounce)
+    * [Duration Trigger](#durationtrigger)
+    * [On With Off Timers](#onwithofftimers)
+    * [Reset All](#resetall)
+    * [Timer's Rules](#timersrules)
 * [Library](#library)
   * [Methods](#methods)
   * [Macros](#macros)
@@ -510,7 +511,7 @@ There are more methods that allow you to affect change on your timers after inst
 
 # Examples
 
-There are currently seven examples in the library.
+There are currently eight examples in the library.
 
 ### BlockNotBlink
 
@@ -521,6 +522,10 @@ This sketch does the same thing as the famous blink sketch, only it does it with
 If you have a nano or an uno or equivalent laying around and four LEDs and some resistors, connect them to pins 9 - 12 and run this sketch. You will immediately see the benefit of non-blocking timers. You could never write a sketch that could do the same thing using the delay() command.  It would be impossible.
 
 **Non-Blocking MATTERS!**
+
+### ButtonDebounce
+
+Learn how to debounce a button without using delay()
 
 ### DurationTrigger
 
@@ -556,6 +561,8 @@ For example, when LiteTimer triggers, you should soon after that see the output 
 stopAfterThreeTimer.  When you look at the number of milliseconds in each of their 
 outputs, you can see that indeed it does trigger three seconds after being reset, 
 but then it does not re-trigger until after it is reset again.
+
+
 
 - Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
 ### MillisRolloverTest
