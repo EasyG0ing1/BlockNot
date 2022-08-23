@@ -529,7 +529,7 @@ If you have a nano or an uno or equivalent laying around and four LEDs and some 
 This sketch was added to demonstrate that BlockNot can and does properly calculate
 timer durations even when millis() rolls over. The sketch has comments at the top that
 fully explain what it does, and how you can adjust the time until millis() rolls using the
-terminal. See the discussion further down on millis() and micros() rollover.
+terminal. See [the discussion](#rollover) further down on millis() and micros() rollover.
 
 ### ButtonDebounce
 
