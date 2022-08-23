@@ -141,7 +141,9 @@ public:
 
     void reset(const unsigned long newStartTime = 0);
 
-    void setMillisOffset(unsigned long offset);
+    void setMillisOffset(unsigned long offset = 0);
+
+    void setMicrosOffset(unsigned long offset = 0);
 
     unsigned long getMillis();
 
@@ -155,6 +157,7 @@ private:
      */
     unsigned long startTime;
     unsigned long millisOffset = 0;
+    unsigned long microsOffset = 0;
     unsigned long timerStoppedReturnValue = 0;
     int totalMissedDurations = 0;
     bool timerRunning = true;

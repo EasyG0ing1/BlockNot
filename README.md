@@ -28,6 +28,7 @@ This library enables you to create non-blocking timers using simple, common sens
 * [Examples](#examples)
     * [BlockNot Blink](#blocknotblink)
     * [BlockNot Blink Party](#blocknotblinkparty)
+    * [Millis() Rollover Test](#millisrollovertest)
     * [Button Debounce](#buttondebounce)
     * [Duration Trigger](#durationtrigger)
     * [On With Off Timers](#onwithofftimers)
@@ -523,6 +524,13 @@ If you have a nano or an uno or equivalent laying around and four LEDs and some 
 
 **Non-Blocking MATTERS!**
 
+### MillisRolloverTest
+
+This sketch was added to demonstrate that BlockNot can and does properly calculate
+timer durations even when millis() rolls over. The sketch has comments at the top that
+fully explain what it does, and how you can adjust the time until millis() rolls using the
+terminal. See the discussion further down on millis() and micros() rollover.
+
 ### ButtonDebounce
 
 Learn how to debounce a button without using delay()
@@ -562,16 +570,9 @@ stopAfterThreeTimer.  When you look at the number of milliseconds in each of the
 outputs, you can see that indeed it does trigger three seconds after being reset, 
 but then it does not re-trigger until after it is reset again.
 
-
-
 - Thanks to [@SteveRMann](https://github.com/SteveRMann) for kick-starting this example and working with me on fine-tuning it.
-### MillisRolloverTest
 
-  This sketch was added to demonstrate that BlockNot can and does properly calculate
-  timer durations even when millis() rolls over. See the discussion further down
-  on that topic.
-
-  These examples barely scratch the surface of what you can accomplish with BlockNot.
+#### These examples barely scratch the surface of what you can accomplish with BlockNot.
 
 
 # Library
@@ -713,6 +714,10 @@ value of millis() and calculating the time difference between trigger events. Th
 discussion in that sketch.
 
 # Version Update Notes
+
+### 2.0.5
+- Adjusted the way in which BlockNot handles the millis offset.
+- Added setMicrosOffset(unsigned long) for the testing of micros() rollovers.
 
 ### 2.0.3
 - Added undocumented methods to facilitate testing of millis() rollover.

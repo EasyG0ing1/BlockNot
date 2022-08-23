@@ -323,11 +323,11 @@ unsigned long BlockNot::convert(unsigned long value, Unit units) {
 void BlockNot::switchTo(Unit units) { baseUnits = units; }
 
 void BlockNot::reset(const unsigned long newStartTime) {
-    unsigned long finalStartTime = newStartTime;
+   unsigned long finalStartTime = newStartTime;
     if(newStartTime == 0) {
         switch(baseUnits) {
             case MICROSECONDS:
-                finalStartTime = micros();
+                finalStartTime = micros() + microsOffset;
                 break;
             case MILLISECONDS:
                 finalStartTime = millis() + millisOffset;
@@ -341,7 +341,13 @@ void BlockNot::reset(const unsigned long newStartTime) {
 }
 
 void BlockNot::setMillisOffset(unsigned long offset) {
+    long delta = offset - millisOffset;
+    startTime = startTime + delta;
     millisOffset = offset;
+}
+
+void BlockNot::setMicrosOffset(unsigned long offset) {
+    microsOffset = offset;
 }
 
 unsigned long BlockNot::getMillis() {
@@ -373,15 +379,16 @@ void BlockNot::resetTimer(const unsigned long newStartTime) {
 
 unsigned long BlockNot::timeSinceReset() {
     unsigned long result = 0L;
+    unsigned long millisBase = millisOffset + millis();
     switch (baseUnits) {
         case MICROSECONDS:
-            result = micros() - startTime;
+            result = microsOffset + micros() - startTime;
             break;
         case MILLISECONDS:
-            result = millis() + millisOffset - startTime;
+            result = millisBase - startTime;
             break;
         case SECONDS:
-            result = millis() + millisOffset - startTime;
+            result = millisBase - startTime;
             break;
     }
     return result;

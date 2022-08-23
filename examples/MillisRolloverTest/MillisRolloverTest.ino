@@ -28,35 +28,101 @@
  * about two months ;-)
  */
 
-BlockNot mainTimer(15, SECONDS);
-BlockNot checkTimer(550);
+/*
+ * Once millis() has rolled over, a new rollover time will be set by a random number,
+ * every seven seconds ... UNLESS ...
+ */
 
+/*
+ * USER INPUT
+ *
+ * You can type in the word reset with a number to reset the roll to however many seconds
+ * you wish. Ex:
+ *
+ *      reset15
+ *
+ * Will set the millis() for the mainTimer to roll over to 0 in 15 seconds. The mainTimer
+ * will continue counting and displaying its elapsed duration about once ever second, but
+ * what is important to note, is that even after the rollover, the elapsed duration for
+ * mainTimer does not skip a beat.
+ *
+ * The reason why the elapsed time presented for mainTimer drifts as much as it does is
+ * because of the blocking nature that is inherent with Serial activity and since it's
+ * writing text to the Serial port every second.
+ *
+ * Since Serial.println is a blocking method, it will inevitably shift the point in time
+ * where the variable elapsed is calculated under the if then statement for
+ * reportTimer.TRIGGERED
+ */
+
+BlockNot mainTimer(15000);
+BlockNot checkTimer(550);
+BlockNot reportTimer(1135);
+BlockNot randomTimer(7, SECONDS);
+
+unsigned long mainTimerMillisStart;
 unsigned long startTime;
+bool millisReset = false;
+
+unsigned long getRandomSeconds() {
+    return random(3,25);
+}
+
+void setMillisRolloverTo(unsigned long seconds) {
+    mainTimer.setMillisOffset(4294967295 - millis() - (seconds * 1000));
+    mainTimerMillisStart = mainTimer.getMillis();
+    millisReset = false;
+    Serial.println("\n\t\tMillis reset to roll in " + String(seconds) + " seconds.\n");
+}
+
+void checkSerial() {
+    String input = Serial.readString();
+    if(input.startsWith("reset")) {
+        unsigned long seconds = input.substring(5).toInt();
+        setMillisRolloverTo(seconds);
+    }
+    Serial.flush();
+}
 
 void setup() {
     Serial.begin(115200);
-    mainTimer.setMillisOffset(4294947296); //20 seconds before rollover
+    mainTimer.setMillisOffset(4294958296); //9 seconds before rollover
     mainTimer.RESET;
     startTime = millis();
+    mainTimerMillisStart = mainTimer.getMillis();
+    randomSeed(analogRead(0));
     Serial.println(F("Test Started"));
 }
 
 void loop() {
-    static unsigned long startMillis = mainTimer.getMillis();
-
+    static unsigned long currentTimerMillis;
+    currentTimerMillis = mainTimer.getMillis();
     if(checkTimer.TRIGGERED) {
-        long currentTimerMillis = mainTimer.getMillis();
-        if (currentTimerMillis < startMillis) {
+        currentTimerMillis = mainTimer.getMillis();
+        if (currentTimerMillis < mainTimerMillisStart) {
             Serial.println(F("\nMillis Rolled"));
-            Serial.println("Start value: " + String(startMillis));
+            Serial.println("Start value: " + String(mainTimerMillisStart));
             Serial.println("Current value: " + String(currentTimerMillis) + "\n");
-            startMillis = currentTimerMillis;
+            mainTimerMillisStart = currentTimerMillis;
+            millisReset = true;
+            randomTimer.RESET;
         }
+    }
+    if(reportTimer.TRIGGERED) {
+        unsigned long elapsed = mainTimer.getTimeSinceLastReset();
+        Serial.println("mainTimer: " + String(elapsed) + " milliseconds");
     }
     if(mainTimer.TRIGGERED) {
         unsigned long endTime = millis();
         long delta = endTime - startTime;
-        Serial.println("Timer Triggered after " + String(delta/1000) + " seconds elapsed");
+        auto elapsed = (double) (delta/1000);
+        Serial.println("\n****************************************************\n* Main Timer Triggered after " + String(elapsed,0) + " seconds elapsed *\n****************************************************\n");
         startTime = endTime;
     }
+    if (randomTimer.TRIGGERED && millisReset) {
+        unsigned long seconds = getRandomSeconds();
+        setMillisRolloverTo(getRandomSeconds());
+    }
+    if (Serial.available())
+        checkSerial();
 }
