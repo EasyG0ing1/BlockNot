@@ -11,7 +11,7 @@ This library enables you to create non-blocking timers using simple, common sens
     * [One Time Trigger](#one-time-trigger)
     * [Triggered OnDuration](#triggered-onduration)
         * [Default Behavior](#default-behavior)
-      * [OnDuration(ALL)](#onduration--all-)
+      * [OnDuration(ALL)](#ondurationall)
   * [The Reset](#the-reset)
     * [Global Reset](#global-reset)
   * [Time Unit Options](#time-unit-options)
@@ -20,20 +20,20 @@ This library enables you to create non-blocking timers using simple, common sens
       * [BlockNot Assumptions](#blocknot-assumptions)
       * [Microseconds](#microseconds)
     * [Converting Units](#converting-units)
-    * [Changing Values](#changing-values)
+    * [Changing Duration](#changing-duration)
     * [Switching Base Units](#switching-base-units)
   * [Start / Stop](#start--stop)
     * [Return Values on Stopped Timers](#return-values-on-stopped-timers)
   * [Summary](#summary)
 * [Examples](#examples)
-    * [BlockNot Blink](#blocknotblink)
-    * [BlockNot Blink Party](#blocknotblinkparty)
-    * [Millis() Rollover Test](#millisrollovertest)
-    * [Button Debounce](#buttondebounce)
-    * [Duration Trigger](#durationtrigger)
-    * [On With Off Timers](#onwithofftimers)
-    * [Reset All](#resetall)
-    * [Timer's Rules](#timersrules)
+    * [BlockNot Blink](#blocknot-blink)
+    * [BlockNot Blink Party](#blocknot-blink-party)
+    * [Millis() Rollover Test](#millis-rollover-test)
+    * [Button Debounce](#button-debounce)
+    * [Duration Trigger](#duration-trigger)
+    * [On With Off Timers](#on-with-off-timers)
+    * [Reset All](#reset-all)
+    * [Timer's Rules](#timers-rules)
 * [Library](#library)
   * [Methods](#methods)
   * [Macros](#macros)
@@ -396,21 +396,26 @@ Here is what each of these methods provides:
 - ```getStartTime()``` returns the value of the CPUs micros() or millis() method that was recorded as the timers current startTime
 - ```getDuration()``` Simply returns the duration that is currently set in the timer (the duration you assign when you create the timer, or the one that you changed it to after the fact)
 - ```getTimeSinceLastReset()``` returns a value that represents how much time has elapsed since the timer was last reset. It does not consider trigger events, but only the current startTime.
-### Changing Values
-When you need to change a timers' duration, or you need to add or subtract time to the timer's duration,
-you MUST pass numbers into those arguments that are in the timers base unit.
+### Changing Duration
+When you need to change a timers' duration, use the ```setDuration(time)``` method. BlockNot assumes that the number you pass
+into the argument will be in the same units as the current baseUnit of the timer. However, if you wish to change the duration
+by passing in a value that is in different units, you can use ```setDuration(time, Unit)``` and BlockNot will convert that number
+into whatever its current baseUnit is. 
 
-So if, for example, you declared the timer as a SECONDS timer, and you want to change the duration to
-be 10 seconds, you must do so like this
+For example, if you have a timer that is declared as a MILLISECONDS timer
 ```C++
-myTimer.setDuration(10);
+BlockNot myTimer(2500);
 ```
-And if you have declared a timer in MILLISECONDS, and you want to add or subtract 2300 milliseconds
-to the timers duration
-```C++
-myTimer.addTime(2300);
-myTimer.takeTime(2300);
+
+And you want to change the duration to three seconds, you could do it in two ways:
+```c++
+myTimer.setDuration(3, SECONDS);
+//OR
+myTimer.switchTo(SECONDS);
+myTimer.setDuration(3);
 ```
+
+Using the first option will not change the baseUnit of the timer, so a MILLISECOND timer will remain as a MILLISECOND timer even though you changed the duration to 3 SECONDS.
 
 ### Switching Base Units
 If you need to switch the timers base units, you can do so like this:
@@ -426,15 +431,26 @@ you switched it to.
 Using ```switchTo()``` is no different from originally declaring the timer in the base unit that you
 switch it to.
 
-Though I cannot imagine why anyone would want to do this, I included the feature for flexibility. 
-Just know that however you declare the timers units, you must deal with it in those units, or use
-the convert method to get your answers in different units.
-
 ## Start / Stop
 
 You can stop a timer, then start it again as needed.
 
-When a timer is stopped, any call to the timer that would return a boolean value will ALWAYS 
+By default, the start() method DOES NOT reset a timer. Calling the method like this is like starting
+a stop watch, after it has been stopped. The stop watch does not reset the start time to 00:00, but
+rather it merely pauses the timer until you start it again. In like manner, calling stop() then start()
+merely pauses the timer, so that any time that passes between a stop() and a start() gets subtracted
+out ... and the timers startTime is changed so that the time that passed is added to the startTime so that
+you can pick up right where you left off.
+
+You can override this behavior and have the timer RESET when you start it, by using either of these
+options:
+
+```C++
+myTimer.START_RESET;
+myTimer.start(WITH_RESET);
+```
+
+When a timer is in a stopped state, any call to the timer that would return a boolean value will ALWAYS 
 return false. And when you query the timer where a numeric value is supposed to be returned, 
 it will return a ZERO by default, although you can change what number it returns for those 
 methods, as long as the number you set is a positive number (BlockNot does not ever deal with 
@@ -514,34 +530,34 @@ There are more methods that allow you to affect change on your timers after inst
 
 There are currently eight examples in the library.
 
-### BlockNotBlink
+### BlockNot Blink
 
 This sketch does the same thing as the famous blink sketch, only it does it with BlockNot elegance and style.
 
-### BlockNotBlinkParty
+### BlockNot Blink Party
 
 If you have a nano or an uno or equivalent laying around and four LEDs and some resistors, connect them to pins 9 - 12 and run this sketch. You will immediately see the benefit of non-blocking timers. You could never write a sketch that could do the same thing using the delay() command.  It would be impossible.
 
 **Non-Blocking MATTERS!**
 
-### MillisRolloverTest
+### Millis Rollover Test
 
 This sketch was added to demonstrate that BlockNot can and does properly calculate
 timer durations even when millis() rolls over. The sketch has comments at the top that
 fully explain what it does, and how you can adjust the time until millis() rolls using the
 terminal. See [the discussion](#rollover) further down on millis() and micros() rollover.
 
-### ButtonDebounce
+### Button Debounce
 
 Learn how to debounce a button without using delay()
 
-### DurationTrigger
+### Duration Trigger
 
 Read the section above to get an idea of what TRIGGERED_ON_DURATION does, then load this example up and play around
 with it. You can pause the loop from Terminal monitor by typing in p and hitting enter. Then if you wait for several
 durations to pass, then un-pause the loop, you will see hoe BlockNot handles that feature.
 
-### OnWithOffTimers
+### On With Off Timers
 
 This example shows you how to use on and off timers to control anything that you need 
 to have on for a certain length of time and also off for a certain length of time.
@@ -549,14 +565,14 @@ to have on for a certain length of time and also off for a certain length of tim
 The example specifically blinks two LEDs such that they will always be in sync every 
 6 seconds ... by this pattern:
 
-### ResetAll
+### Reset All
 
 This sketch shows how all BlockNot timers defined in your sketch can be reset with a 
 single line of code, rather than having to call reset() for each and every one 
 separately. This comes in handy when all timers need to be reset at once, e.g. after 
 the system clock has been adjusted from an external source (NTP or RTC, for example).
 
-### TimersRules
+### Timers Rules
 
 This sketch has SIX timers created and running at the same time. There are various 
 things happening at the trigger event of each timer. The expected behavior is explained 
@@ -714,6 +730,11 @@ value of millis() and calculating the time difference between trigger events. Th
 discussion in that sketch.
 
 # Version Update Notes
+
+### 2.0.6
+- Added constructors that allow creating timers in a STOPPED state. Look at the constructors in BlockNot.h to see which arguments you can use when creating a new timer. 
+- Added setDuration(unsigned long time, Unit inUnits) - this allows you to set a new duration using any units you want to use, WITHOUT changing the timers current base units. Read [Changing Duration](#changing-duration) for more details.
+- Added the option of starting a timer while simultaneously resetting it. And also changed the stop and start methods so that the timer acts in similar fassion to a stop watch. Read the [Start / Stop](#start--stop) section for more details.
 
 ### 2.0.5
 - Adjusted the way in which BlockNot handles the millis offset.

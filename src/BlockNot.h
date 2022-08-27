@@ -1,4 +1,4 @@
-/*
+/**
  * BlockNot is a simple and easy to use Arduino class for the implementation
  * of non-blocking timers, as it is far better to use non-blocking timers
  * with a micro-controller since they allow you to trigger code at defined
@@ -19,7 +19,7 @@
 #pragma once
 
 
-/*
+/**
  * Macros - their usage and significance is described in README.md
  */
 
@@ -28,6 +28,9 @@ enum Unit {
 };
 enum Global {
     yes, no
+};
+enum State {
+    running, stopped
 };
 
 #define WITH_RESET true
@@ -38,6 +41,8 @@ enum Global {
 #define MICROSECONDS            Unit::mic
 #define NO_GLOBAL_RESET         Global::no
 #define GLOBAL_RESET            Global::yes
+#define RUNNING                 State::running
+#define STOPPED                 State::stopped
 
 #define TIME_PASSED                 getTimeSinceLastReset()
 #define TIME_SINCE_RESET            getTimeSinceLastReset()
@@ -61,6 +66,7 @@ enum Global {
 #define RESET                       reset()
 #define RESET_TIMERS                resetAllTimers()
 #define START                       start()
+#define START_RESET                 start(WITH_RESET)
 #define STOP                        stop()
 #define ISSTARTED                   isRunning()
 #define ISRUNNING                   isRunning()
@@ -71,31 +77,50 @@ class BlockNot {
 
 public:
 
-    /*
+    /**
      * Constructors
      */
     BlockNot();
 
     BlockNot(unsigned long time);
 
+    BlockNot(unsigned long time, State state);
+
     BlockNot(unsigned long time, Unit units);
+
+    BlockNot(unsigned long time, Unit units, State state);
 
     BlockNot(unsigned long time, Global globalReset);
 
+    BlockNot(unsigned long time, State state, Global globalReset);
+
     BlockNot(unsigned long time, Unit units, Global globalReset);
+
+    BlockNot(unsigned long time, Unit units, State state, Global globalReset);
 
     BlockNot(unsigned long time, unsigned long stoppedReturnValue);
 
+    BlockNot(unsigned long time, unsigned long stoppedReturnValue, State state);
+
     BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units);
+
+    BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, State state);
 
     BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset);
 
+    BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset, State state);
+
     BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, Global globalReset);
 
-    /*
+    BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, Global globalReset, State state);
+
+    /**
      * Public Methods
      */
+
     void setDuration(const unsigned long time, bool resetOption = WITH_RESET);
+
+    void setDuration(const unsigned long time, Unit units, bool resetOption = WITH_RESET);
 
     void addTime(const unsigned long time, bool resetOption = NO_RESET);
 
@@ -125,7 +150,7 @@ public:
 
     void setStoppedReturnValue(unsigned long stoppedReturnValue);
 
-    void start();
+    void start(bool resetOption = NO_RESET);
 
     void stop();
 
@@ -152,7 +177,7 @@ public:
     BlockNot *getNextTimer() { return nextTimer; }
 
 private:
-    /*
+    /**
      * Private Variables and Methods
      */
     unsigned long startTime;
@@ -160,7 +185,6 @@ private:
     unsigned long microsOffset = 0;
     unsigned long timerStoppedReturnValue = 0;
     int totalMissedDurations = 0;
-    bool timerRunning = true;
     bool onceTriggered = false;
 
     union cTime {
@@ -191,10 +215,11 @@ private:
         } micros;
     };
 
-
     static Global global;
     Unit baseUnits = MILLISECONDS;
     cTime duration;
+    cTime stopTime;
+    State timerState = RUNNING;
 
     static BlockNot *currentTimer;
     static BlockNot *firstTimer;
@@ -203,6 +228,8 @@ private:
     void resetTimer(const unsigned long newStartTime);
 
     void initDuration(unsigned long time);
+
+    void initDuration(unsigned long time, Unit desiredUnits);
 
     unsigned long timeSinceReset();
 
@@ -221,7 +248,7 @@ private:
     unsigned long convertUnits(cTime timeValue);
 };
 
-/*
+/**
  * Global methods affecting all instances of the BlockNot class.
  */
 void resetAllTimers(const unsigned long newStartTime = micros());

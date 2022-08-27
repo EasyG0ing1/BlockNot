@@ -3,7 +3,7 @@
 #######################################
 
 #######################################
-# Datatypes (KEYWORD1)
+# DataTypes (KEYWORD1)
 #######################################
 
 WITH_RESET  KEYWORD1
@@ -14,6 +14,8 @@ MILLISECONDS    KEYWORD1
 MICROSECONDS    KEYWORD1
 NO_GLOBAL_RESET KEYWORD1
 GLOBAL_RESET    KEYWORD1
+RUNNING    KEYWORD1
+STOPPED    KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -28,7 +30,6 @@ notTriggered    KEYWORD2
 firstTrigger    KEYWORD2
 getNextTriggerTime  KEYWORD2
 getTimeUntilTrigger KEYWORD2
-getStartTime    KEYWORD2
 getStartTime    KEYWORD2
 getDuration KEYWORD2
 getUnits    KEYWORD2
@@ -75,6 +76,7 @@ FIRST_TRIGGER   LITERAL1
 RESET   LITERAL1
 RESET_TIMERS    LITERAL1
 START   LITERAL1
+START_RESET   LITERAL1
 STOP    LITERAL1
 ISSTARTED   LITERAL1
 ISRUNNING   LITERAL1

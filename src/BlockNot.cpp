@@ -1,4 +1,4 @@
-/*
+/**
  * BlockNot is a simple and easy to use Arduino class for the implementation
  * of non-blocking timers, as it is far better to use non-blocking timers
  * with a micro-controller since they allow you to trigger code at defined
@@ -14,14 +14,15 @@
 
 #include <BlockNot.h>
 
-/*
+/**
  * Global Variables
  */
 
 BlockNot *BlockNot::firstTimer = nullptr;
 BlockNot *BlockNot::currentTimer = nullptr;
 Global BlockNot::global = GLOBAL_RESET;
-/*
+
+/**
  * Constructors
  */
 
@@ -37,8 +38,27 @@ BlockNot::BlockNot(unsigned long time) {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
+BlockNot::BlockNot(unsigned long time, State state) {
+    global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
+    if(state == STOPPED)
+        stop();
+    initDuration(time);
+    reset();
+    if (global == GLOBAL_RESET) addToTimerList();
+}
+
 BlockNot::BlockNot(unsigned long time, Unit units) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
+    baseUnits = units;
+    initDuration(time);
+    reset();
+    if (global == GLOBAL_RESET) addToTimerList();
+}
+
+BlockNot::BlockNot(unsigned long time, Unit units, State state) {
+    global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
+    if(state == STOPPED)
+        stop();
     baseUnits = units;
     initDuration(time);
     reset();
@@ -52,7 +72,26 @@ BlockNot::BlockNot(unsigned long time, Global globalReset) {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
+BlockNot::BlockNot(unsigned long time, State state, Global globalReset) {
+    if(state == STOPPED)
+        stop();
+    initDuration(time);
+    reset();
+    global = globalReset;
+    if (global == GLOBAL_RESET) addToTimerList();
+}
+
 BlockNot::BlockNot(unsigned long time, Unit units, Global globalReset) {
+    baseUnits = units;
+    initDuration(time);
+    reset();
+    global = globalReset;
+    if (global == GLOBAL_RESET) addToTimerList();
+}
+
+BlockNot::BlockNot(unsigned long time, Unit units, State state, Global globalReset) {
+    if(state == STOPPED)
+        stop();
     baseUnits = units;
     initDuration(time);
     reset();
@@ -68,6 +107,17 @@ BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue) {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, State state) {
+    if(state == STOPPED)
+        stop();
+    global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
+    initDuration(time);
+    timerStoppedReturnValue = stoppedReturnValue;
+    reset();
+    if (global == GLOBAL_RESET) addToTimerList();
+
+}
+
 BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
     baseUnits = units;
@@ -77,7 +127,28 @@ BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit un
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, State state) {
+    global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
+    if(state == STOPPED)
+        stop();
+    baseUnits = units;
+    initDuration(time);
+    timerStoppedReturnValue = stoppedReturnValue;
+    reset();
+    if (global == GLOBAL_RESET) addToTimerList();
+}
+
 BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset) {
+    initDuration(time);
+    timerStoppedReturnValue = stoppedReturnValue;
+    reset();
+    global = globalReset;
+    if (global == GLOBAL_RESET) addToTimerList();
+}
+
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset, State state) {
+    if(state == STOPPED)
+        stop();
     initDuration(time);
     timerStoppedReturnValue = stoppedReturnValue;
     reset();
@@ -94,7 +165,17 @@ BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit un
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-/*
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, Global globalReset, State state) {
+    if(state == STOPPED)
+        stop();
+    initDuration(time);
+    timerStoppedReturnValue = stoppedReturnValue;
+    reset();
+    global = globalReset;
+    if (global == GLOBAL_RESET) addToTimerList();
+}
+
+/**
  * Public Methods
  */
 
@@ -103,8 +184,12 @@ void BlockNot::setDuration(const unsigned long time, bool resetOption) {
     if (resetOption) reset();
 }
 
+void BlockNot::setDuration(const unsigned long time, Unit inUnits, bool resetOption) {
+    initDuration(time, inUnits);
+    if (resetOption) reset();
+}
+
 void BlockNot::addTime(const unsigned long time, bool resetOption) {
-    cTime newTime;
     unsigned long newDuration;
     switch(baseUnits) {
         case MICROSECONDS:
@@ -153,7 +238,7 @@ bool BlockNot::triggered(bool resetOption) {
     if (resetOption && triggered) {
         reset();
     }
-    if (timerRunning) return triggered;
+    if (timerState == RUNNING) return triggered;
     else return false;
 }
 
@@ -185,14 +270,15 @@ bool BlockNot::triggeredOnDuration(bool allMissed) {
 }
 
 bool BlockNot::notTriggered() {
-    if (timerRunning) return !hasTriggered();
+    if (timerState == RUNNING) return !hasTriggered();
     else return false;
 }
 
 bool BlockNot::firstTrigger() {
     if (hasTriggered() && !onceTriggered) {
         onceTriggered = true;
-        if (timerRunning) return true;
+        if (timerState == RUNNING)
+            return true;
     }
     return false;
 }
@@ -249,7 +335,7 @@ unsigned long BlockNot::getStartTime(Unit units) {
 }
 
 unsigned long BlockNot::getDuration() {
-    return timerRunning ? convertUnits(duration) : timerStoppedReturnValue;
+    return (timerState == RUNNING) ? convertUnits(duration) : timerStoppedReturnValue;
 }
 
 String BlockNot::getUnits() {
@@ -269,27 +355,60 @@ unsigned long BlockNot::getTimeSinceLastReset() {
             timeLapsed.millis = timeSinceReset();
             break;
     }
-    return timerRunning ? convertUnits(timeLapsed) : timerStoppedReturnValue;
+    return (timerState == RUNNING) ? convertUnits(timeLapsed) : timerStoppedReturnValue;
 }
 
 void BlockNot::setStoppedReturnValue(unsigned long stoppedReturnValue) {
     timerStoppedReturnValue = stoppedReturnValue;
 }
 
-void BlockNot::start() {
-    timerRunning = true;
+void BlockNot::start(bool resetOption) {
+    if(resetOption)
+        reset();
+    else {
+        switch (baseUnits) {
+            case SECONDS:
+                startTime = millis() - stopTime.millis;
+                break;
+
+            case MILLISECONDS:
+                startTime = millis() - stopTime.millis;
+                break;
+
+            case MICROSECONDS:
+                startTime = micros() - stopTime.micros;
+                break;
+        }
+    }
+    timerState = RUNNING;
 }
 
 void BlockNot::stop() {
-    timerRunning = false;
+    timerState = STOPPED;
+    switch(baseUnits) {
+        case SECONDS:
+            stopTime.millis = millis();
+            break;
+
+        case MILLISECONDS:
+            stopTime.millis = millis();
+            break;
+
+        case MICROSECONDS:
+            stopTime.micros = micros();
+            break;
+    }
 }
 
-bool BlockNot::isRunning() {return timerRunning;}
+bool BlockNot::isRunning() {return timerState == RUNNING;}
 
-bool BlockNot::isStopped() {return !timerRunning;}
+bool BlockNot::isStopped() {return timerState == STOPPED;}
 
 void BlockNot::toggle() {
-    timerRunning = !timerRunning;
+    if(timerState == RUNNING)
+        timerState = STOPPED;
+    else
+        timerState = RUNNING;
 }
 
 unsigned long BlockNot::convert(unsigned long value, Unit units) {
@@ -354,12 +473,26 @@ unsigned long BlockNot::getMillis() {
     return millis() + millisOffset;
 }
 
-/*
+/**
  * Private Methods
  */
 
 void BlockNot::initDuration(unsigned long time) {
     switch(baseUnits) {
+        case MICROSECONDS:
+            duration.micros = time;
+            break;
+        case MILLISECONDS:
+            duration.millis = time;
+            break;
+        case SECONDS:
+            duration.seconds = time;
+            break;
+    }
+}
+
+void BlockNot::initDuration(unsigned long time, Unit inUnits) {
+    switch(inUnits) {
         case MICROSECONDS:
             duration.micros = time;
             break;
@@ -433,17 +566,17 @@ unsigned long BlockNot::timeTillTrigger() {
     switch(baseUnits) {
         case MICROSECONDS: {
             triggerTime.micros = (sinceReset < duration.micros) ? (unsigned long) (duration.micros - sinceReset) : 0L;
-            tillTrigger = timerRunning ? convertUnits(triggerTime) : timerStoppedReturnValue;
+            tillTrigger = (timerState == RUNNING) ? convertUnits(triggerTime) : timerStoppedReturnValue;
             break;
         }
         case MILLISECONDS: {
             triggerTime.millis = (sinceReset < duration.millis) ? (unsigned long) (duration.millis - sinceReset) : 0L;
-            tillTrigger = timerRunning ? convertUnits(triggerTime) : timerStoppedReturnValue;
+            tillTrigger = (timerState == RUNNING) ? convertUnits(triggerTime) : timerStoppedReturnValue;
             break;
         }
         case SECONDS: {
             triggerTime.millis = (sinceReset < duration.millis) ? (unsigned long) (duration.millis - sinceReset) : 0L;
-            tillTrigger = timerRunning ? convertUnits(triggerTime) : timerStoppedReturnValue;
+            tillTrigger = (timerState == RUNNING) ? convertUnits(triggerTime) : timerStoppedReturnValue;
             break;
         }
     }
@@ -487,7 +620,7 @@ unsigned long BlockNot::convertUnits(cTime timeValue) {
     return (baseUnits == MICROSECONDS) ? timeValue.micros : (baseUnits == MILLISECONDS) ? timeValue.millis : timeValue.seconds;
 }
 
-/*
+/**
  * Global Methods affecting all instantiations of the BlockNot class
  */
 
