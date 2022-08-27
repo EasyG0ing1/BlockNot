@@ -37,6 +37,7 @@ This library enables you to create non-blocking timers using simple, common sens
 * [Library](#library)
   * [Methods](#methods)
   * [Macros](#macros)
+  * [Constants](#constants)
 * [Discussion](#discussion)
   * [Memory](#memory)
   * [Rollover](#rollover)
@@ -651,6 +652,20 @@ Here are the macro terms and the methods that they call along with any arguments
 * **ISRUNNING** - isRunning()
 * **ISSTOPPED** - isRunning()
 * **TOGGLE** - toggle()
+
+## Constants
+
+* **WITH_RESET** - boolean true
+* **NO_RESET**   - boolean false
+* **ALL**        - boolean true
+* **SECONDS**
+* **MILLISECONDS**
+* **MICROSECONDS**
+* **NO_GLOBAL_RESET**
+* **GLOBAL_RESET**
+* **RUNNING**
+* **STOPPED** (Pass this into a constructor to create a timer in a STOPPED state)
+
 
 If you can think of MACRO names that would make the reading and writing of you code more
 natural and you think it would be a benefit to BlockNot, PLEASE either submit a pull
