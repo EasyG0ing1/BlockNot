@@ -9,6 +9,7 @@ This library enables you to create non-blocking timers using simple, common sens
 * [How To Use BlockNot](#how-to-use-blocknot)
   * [The Trigger](#the-trigger)
     * [One Time Trigger](#one-time-trigger)
+    * [Last Trigger Duration](#last-trigger-duration)
     * [Triggered OnDuration](#triggered-onduration)
         * [Default Behavior](#default-behavior)
       * [OnDuration(ALL)](#ondurationall)
@@ -41,6 +42,7 @@ This library enables you to create non-blocking timers using simple, common sens
 * [Discussion](#discussion)
   * [Memory](#memory)
   * [Rollover](#rollover)
+  * [Thread Safety](#thread-safety)
 * [Version Update Notes](#version-update-notes)
 * [Suggestions](#suggestions)
 <!-- TOC -->
@@ -66,7 +68,10 @@ Then, you just test it to see if it triggered.
       Serial.println("Hello World!"); 
    } 
  ``` 
- That is all you need to start using BlockNot. Keep reading to learn about other features of the library.  
+ Every time the TRIGGERED call returns true, the timer is reset and it wont trigger 
+ again until the duration time has elapsed (all behaviors can be changed based on your needs).
+ 
+That is all you need to start using BlockNot. Keep reading to learn about other features of the library.  
   
     
 # Theory behind BlockNot    
@@ -155,6 +160,14 @@ So that if the stepper hasn't moved in the last 25 seconds, it will be put to sl
 won't execute over and over again each time the loop encounters the check. Yet when the stepper is engaged again,
 the sleep timer is reset and when it becomes idle again for 25 seconds, it is put to sleep. This helps efficiency 
 in your program, and it conserves valuable CPU time.
+
+### Last Trigger Duration
+There can be times when you are collecting information about events using an interrupt pin and it becomes necessary to know how much time passed in the last data gathering interval.
+
+```cpp
+myTimer.LAST_TRIGGER_DURATION
+```
+will give you the amount of time that passed when the last trigger was checked. Because it is possible to have checked for the trigger after the timers duration has passed and so you might need to know how much time actually did elapse and the `lastTiggerDuration()` method is how you get that information.
 
 ### Triggered OnDuration
 
@@ -632,6 +645,7 @@ Here are the macro terms and the methods that they call along with any arguments
 * **TIME_REMAINING** - getTimeUntilTrigger()
 * **REMAINING** - getTimeUntilTrigger()
 * **DURATION** - getDuration()
+* **LAST_TRIGGER_DURATION** - lastTriggerDuration()
 * **GET_UNITS** - getUnits()
 * **GET_START_TIME** - getStartTime()
 * **DONE** - triggered()
@@ -744,7 +758,89 @@ BlockNot calculates timer durations even through millis() rollovers, by artifica
 value of millis() and calculating the time difference between trigger events. There is more
 discussion in that sketch.
 
+## Thread Safety
+With the introduction of cost effective multi-core microcontrollers, more and more people will be 
+writing code where they take advantage of having more than one core in the CPU. And currently, the
+way that most microcontrollers implement the use of another core is by adding a separate code thread
+where the code for that core runs in a different thread.
+
+One of the major problems with multi-threading applications is when the code from different threads
+tries to change the value of a global scoped variable simultaneously.
+
+And where BlockNot is concerned, that could be an issue if you make references to a single timer from
+different threads, because, for example, when you check for TRIGGERED, and the return value is true,
+BlockNot updates a variable that resets the startTime of the timer so that TRIGGERED will only return
+true after the next duration time has passed.
+
+I have changed the declaration of the relevant variables to be volatile variables, which can help 
+situations where a change might be happening at the same instant in time. But the issue is more complex
+than that, so simply declaring variables as volatile by no means, makes BlockNot thread safe. 
+
+If you find yourself in a situation where you need to access or engage a timer from two different
+threads, what is most important is that only one thread make any calls to the timer that cause
+changes to the timers variables. This includes the TRIGGERED method. There is a way to accomplish
+the modification of a timer from two different threads, by utilizing a global variable where only
+one thread writes to it and the other thread reads from it.
+
+Consider this example. Specifically look at the ```adjustTimer()``` method and the ```core1Entry``` method which is
+what is executing in the other core - or is what is running on the other thread - however you want to
+look at it (6 of one, half-dozen the other)
+
+What is important to see here is that one thread is making changes to ```timerDelay``` while the
+other thread is taking that value and passing it into the timers ```setDuration``` method. That same
+thread is also making calls to TRIGGERED which leaves only that thread as the thread causing changes
+to the timers variables.
+```C++
+#include <BlockNot.h>
+
+BlockNot stepperTimer(1, MICROSECONDS);
+unsigned long timerDelay = 0;
+
+
+void stepStepper() {
+    digitalWrite(STEP, HIGH);
+    delayMicroseconds(3);
+    digitalWrite(STEP, LOW);
+    delayMicroseconds(2);
+}
+
+
+[[noreturn]] void core1Entry() {
+    static unsigned long lastTimerDelay = 0;
+    while (true) {
+        if(lastTimerDelay != timerDelay) {
+            stepperTimer.setDuration(timerDelay, NO_RESET);
+            lastTimerDelay = timerDelay;
+        }
+        if (stepperTimer.TRIGGERED)
+            stepStepper();
+    }
+}
+
+void adjustTimer() {
+    long potValue = analogRead(POT_PIN);
+    timerDelay = map(potValue, 0, 1024, 5000, 25);
+}
+
+void setup() {
+    multicore_launch_core1(core1Entry);
+}
+
+void loop() {
+    adjustTimer();
+}
+```
+Even though BlockNot is not "thread-safe" you can still use it in multi-threaded environments if you
+simply make sure that only one thread will ever be causing changes to happen in the timer itself.
+
+
 # Version Update Notes
+
+### 2.1.0
+- Added [Last Trigger Duration](#last-trigger-duration). 
+
+### 2.0.7
+- Changed declaration of some variables in order to assist in "thread-safety". Please See discussion in [Thread Safety](#thread-safety). 
 
 ### 2.0.6
 - Added constructors that allow creating timers in a STOPPED state. Look at the constructors in BlockNot.h to see which arguments you can use when creating a new timer. 

@@ -55,6 +55,7 @@ enum State {
 #define GET_START_TIME              getStartTime()
 #define DONE                        triggered()
 #define TRIGGERED                   triggered()
+#define LAST_TRIGGER_DURATION       lastTriggerDuration()
 #define HAS_TRIGGERED               triggered(NO_RESET)
 #define TRIGGERED_ON_DURATION       triggeredOnDuration()
 #define TRIGGERED_ON_MARK           triggeredOnDuration()
@@ -82,33 +83,33 @@ public:
      */
     BlockNot();
 
-    BlockNot(unsigned long time);
+    BlockNot(unsigned long milliseconds);
 
-    BlockNot(unsigned long time, State state);
+    BlockNot(unsigned long milliseconds, State state);
 
     BlockNot(unsigned long time, Unit units);
 
     BlockNot(unsigned long time, Unit units, State state);
 
-    BlockNot(unsigned long time, Global globalReset);
+    BlockNot(unsigned long milliseconds, Global globalReset);
 
-    BlockNot(unsigned long time, State state, Global globalReset);
+    BlockNot(unsigned long milliseconds, State state, Global globalReset);
 
     BlockNot(unsigned long time, Unit units, Global globalReset);
 
     BlockNot(unsigned long time, Unit units, State state, Global globalReset);
 
-    BlockNot(unsigned long time, unsigned long stoppedReturnValue);
+    BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue);
 
-    BlockNot(unsigned long time, unsigned long stoppedReturnValue, State state);
+    BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, State state);
 
     BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units);
 
     BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, State state);
 
-    BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset);
+    BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, Global globalReset);
 
-    BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset, State state);
+    BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, Global globalReset, State state);
 
     BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, Global globalReset);
 
@@ -143,6 +144,8 @@ public:
     unsigned long getStartTime(Unit units);
 
     unsigned long getDuration();
+
+    unsigned long lastTriggerDuration();
 
     String getUnits();
 
@@ -184,6 +187,7 @@ private:
     unsigned long millisOffset = 0;
     unsigned long microsOffset = 0;
     unsigned long timerStoppedReturnValue = 0;
+    unsigned long lastDuration;
     int totalMissedDurations = 0;
     bool onceTriggered = false;
 

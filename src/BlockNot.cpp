@@ -31,18 +31,18 @@ BlockNot::BlockNot() {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time) {
+BlockNot::BlockNot(unsigned long milliseconds) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
-    initDuration(time);
+    initDuration(milliseconds);
     reset();
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, State state) {
+BlockNot::BlockNot(unsigned long milliseconds, State state) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
     if(state == STOPPED)
         stop();
-    initDuration(time);
+    initDuration(milliseconds);
     reset();
     if (global == GLOBAL_RESET) addToTimerList();
 }
@@ -65,17 +65,17 @@ BlockNot::BlockNot(unsigned long time, Unit units, State state) {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, Global globalReset) {
-    initDuration(time);
+BlockNot::BlockNot(unsigned long milliseconds, Global globalReset) {
+    initDuration(milliseconds);
     reset();
     global = globalReset;
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, State state, Global globalReset) {
+BlockNot::BlockNot(unsigned long milliseconds, State state, Global globalReset) {
     if(state == STOPPED)
         stop();
-    initDuration(time);
+    initDuration(milliseconds);
     reset();
     global = globalReset;
     if (global == GLOBAL_RESET) addToTimerList();
@@ -99,19 +99,19 @@ BlockNot::BlockNot(unsigned long time, Unit units, State state, Global globalRes
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue) {
+BlockNot::BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
-    initDuration(time);
+    initDuration(milliseconds);
     timerStoppedReturnValue = stoppedReturnValue;
     reset();
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, State state) {
+BlockNot::BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, State state) {
     if(state == STOPPED)
         stop();
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
-    initDuration(time);
+    initDuration(milliseconds);
     timerStoppedReturnValue = stoppedReturnValue;
     reset();
     if (global == GLOBAL_RESET) addToTimerList();
@@ -138,18 +138,18 @@ BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit un
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset) {
-    initDuration(time);
+BlockNot::BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, Global globalReset) {
+    initDuration(milliseconds);
     timerStoppedReturnValue = stoppedReturnValue;
     reset();
     global = globalReset;
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Global globalReset, State state) {
+BlockNot::BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, Global globalReset, State state) {
     if(state == STOPPED)
         stop();
-    initDuration(time);
+    initDuration(milliseconds);
     timerStoppedReturnValue = stoppedReturnValue;
     reset();
     global = globalReset;
@@ -238,8 +238,7 @@ bool BlockNot::triggered(bool resetOption) {
     if (resetOption && triggered) {
         reset();
     }
-    if (timerState == RUNNING) return triggered;
-    else return false;
+    return timerState == RUNNING && triggered;
 }
 
 bool BlockNot::triggeredOnDuration(bool allMissed) {
@@ -270,15 +269,13 @@ bool BlockNot::triggeredOnDuration(bool allMissed) {
 }
 
 bool BlockNot::notTriggered() {
-    if (timerState == RUNNING) return !hasTriggered();
-    else return false;
+    return timerState == RUNNING && !hasTriggered();
 }
 
 bool BlockNot::firstTrigger() {
     if (hasTriggered() && !onceTriggered) {
         onceTriggered = true;
-        if (timerState == RUNNING)
-            return true;
+        return timerState == RUNNING;
     }
     return false;
 }
@@ -335,7 +332,11 @@ unsigned long BlockNot::getStartTime(Unit units) {
 }
 
 unsigned long BlockNot::getDuration() {
-    return (timerState == RUNNING) ? convertUnits(duration) : timerStoppedReturnValue;
+    return timerState == RUNNING ? convertUnits(duration) : timerStoppedReturnValue;
+}
+
+unsigned long BlockNot::lastTriggerDuration() {
+    return lastDuration;
 }
 
 String BlockNot::getUnits() {
@@ -529,17 +530,20 @@ unsigned long BlockNot::timeSinceReset() {
 
 bool BlockNot::hasTriggered() {
     bool triggered;
+    long sinceReset = timeSinceReset();
     switch(baseUnits) {
         case MICROSECONDS:
-            triggered = timeSinceReset() >= (unsigned long) duration.micros;
+            triggered = sinceReset >= (unsigned long) duration.micros;
             break;
         case MILLISECONDS:
-            triggered = timeSinceReset() >= (unsigned long) duration.millis;
+            triggered = sinceReset >= (unsigned long) duration.millis;
             break;
         case SECONDS:
-            triggered = timeSinceReset() >= (unsigned long) duration.millis;
+            triggered = sinceReset >= (unsigned long) duration.millis;
             break;
     }
+    if(triggered)
+        lastDuration = sinceReset;
     return triggered;
 }
 
