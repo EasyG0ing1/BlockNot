@@ -6,6 +6,9 @@
 # DataTypes (KEYWORD1)
 #######################################
 
+BlockNotUnit    KEYWORD1
+BlockNotGlobal  KEYWORD1
+BlockNotState   KEYWORD1
 WITH_RESET  KEYWORD1
 NO_RESET    KEYWORD1
 ALL KEYWORD1
@@ -44,6 +47,11 @@ toggle  KEYWORD2
 convert KEYWORD2
 switchTo    KEYWORD2
 reset   KEYWORD2
+setMillisOffset   KEYWORD2
+setMicrosOffset   KEYWORD2
+getMillis   KEYWORD2
+getFirstTimer   KEYWORD2
+getNextTimer   KEYWORD2
 
 ######################################
 # Instances (KEYWORD2)
