@@ -1,4 +1,4 @@
-~/**
+/**
  * BlockNot is a simple and easy to use Arduino class for the implementation
  * of non-blocking timers, as it is far better to use non-blocking timers
  * with a micro-controller since they allow you to trigger code at defined
@@ -22,9 +22,15 @@
  * Macros - their usage and significance is described in README.md
  */
 
-enum BlockNotUnit {mic, mil, sec};
-enum BlockNotGlobal {yes, no};
-enum BlockNotState {running, stopped};
+enum BlockNotUnit {
+    mic, mil, sec
+};
+enum BlockNotGlobal {
+    yes, no
+};
+enum BlockNotState {
+    running, stopped
+};
 
 #define WITH_RESET true
 #define NO_RESET   false
@@ -246,7 +252,7 @@ private:
 };
 
 /**
- * BlockNotGlobal methods affecting all instances of the BlockNot class.
+ * Global methods affecting all instances of the BlockNot class.
  */
 void resetAllTimers(const unsigned long newStartTime = micros());
 

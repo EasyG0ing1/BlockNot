@@ -15,7 +15,7 @@
 #include <BlockNot.h>
 
 /**
- * BlockNotGlobal Variables
+ * Global Variables
  */
 
 BlockNot *BlockNot::firstTimer = nullptr;
@@ -47,7 +47,7 @@ BlockNot::BlockNot(unsigned long milliseconds, BlockNotState state) {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, Unit units) {
+BlockNot::BlockNot(unsigned long time, BlockNotUnit units) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
     baseUnits = units;
     initDuration(time);
@@ -55,7 +55,7 @@ BlockNot::BlockNot(unsigned long time, Unit units) {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, Unit units, BlockNotState state) {
+BlockNot::BlockNot(unsigned long time, BlockNotUnit units, BlockNotState state) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
     if(state == STOPPED)
         stop();
@@ -81,7 +81,7 @@ BlockNot::BlockNot(unsigned long milliseconds, BlockNotState state, BlockNotGlob
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, Unit units, BlockNotGlobal globalReset) {
+BlockNot::BlockNot(unsigned long time, BlockNotUnit units, BlockNotGlobal globalReset) {
     baseUnits = units;
     initDuration(time);
     reset();
@@ -89,7 +89,7 @@ BlockNot::BlockNot(unsigned long time, Unit units, BlockNotGlobal globalReset) {
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, Unit units, BlockNotState state, BlockNotGlobal globalReset) {
+BlockNot::BlockNot(unsigned long time, BlockNotUnit units, BlockNotState state, BlockNotGlobal globalReset) {
     if(state == STOPPED)
         stop();
     baseUnits = units;
@@ -118,7 +118,7 @@ BlockNot::BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue,
 
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units) {
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNotUnit units) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
     baseUnits = units;
     initDuration(time);
@@ -127,7 +127,7 @@ BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit un
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, BlockNotState state) {
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNotUnit units, BlockNotState state) {
     global = (global == NO_GLOBAL_RESET) ? NO_GLOBAL_RESET : GLOBAL_RESET;
     if(state == STOPPED)
         stop();
@@ -156,7 +156,7 @@ BlockNot::BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue,
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, BlockNotGlobal globalReset) {
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNotUnit units, BlockNotGlobal globalReset) {
     baseUnits = units;
     initDuration(time);
     timerStoppedReturnValue = stoppedReturnValue;
@@ -165,7 +165,7 @@ BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit un
     if (global == GLOBAL_RESET) addToTimerList();
 }
 
-BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, Unit units, BlockNotGlobal globalReset, BlockNotState state) {
+BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNotUnit units, BlockNotGlobal globalReset, BlockNotState state) {
     if(state == STOPPED)
         stop();
     initDuration(time);
@@ -184,7 +184,7 @@ void BlockNot::setDuration(const unsigned long time, bool resetOption) {
     if (resetOption) reset();
 }
 
-void BlockNot::setDuration(const unsigned long time, Unit inUnits, bool resetOption) {
+void BlockNot::setDuration(const unsigned long time, BlockNotUnit inUnits, bool resetOption) {
     initDuration(time, inUnits);
     if (resetOption) reset();
 }
@@ -317,7 +317,7 @@ unsigned long BlockNot::getStartTime() {
     return convertUnits(sTime);
 }
 
-unsigned long BlockNot::getStartTime(Unit units) {
+unsigned long BlockNot::getStartTime(BlockNotUnit units) {
     cTime timeValue;
     timeValue.micros = startTime;
     switch(units) {
@@ -412,7 +412,7 @@ void BlockNot::toggle() {
         timerState = RUNNING;
 }
 
-unsigned long BlockNot::convert(unsigned long value, Unit units) {
+unsigned long BlockNot::convert(unsigned long value, BlockNotUnit units) {
     cTime timeValue;
     unsigned long result = 0L;
     switch(baseUnits) {
@@ -440,10 +440,10 @@ unsigned long BlockNot::convert(unsigned long value, Unit units) {
     return result;
 }
 
-void BlockNot::switchTo(Unit units) { baseUnits = units; }
+void BlockNot::switchTo(BlockNotUnit units) { baseUnits = units; }
 
 void BlockNot::reset(const unsigned long newStartTime) {
-   unsigned long finalStartTime = newStartTime;
+    unsigned long finalStartTime = newStartTime;
     if(newStartTime == 0) {
         switch(baseUnits) {
             case MICROSECONDS:
@@ -492,7 +492,7 @@ void BlockNot::initDuration(unsigned long time) {
     }
 }
 
-void BlockNot::initDuration(unsigned long time, Unit inUnits) {
+void BlockNot::initDuration(unsigned long time, BlockNotUnit inUnits) {
     switch(inUnits) {
         case MICROSECONDS:
             duration.micros = time;
@@ -625,7 +625,7 @@ unsigned long BlockNot::convertUnits(cTime timeValue) {
 }
 
 /**
- * BlockNotGlobal Methods affecting all instantiations of the BlockNot class
+ * Global Methods affecting all instantiations of the BlockNot class
  */
 
 void resetAllTimers(const unsigned long newStartTime) {
@@ -637,15 +637,15 @@ void resetAllTimers(const unsigned long newStartTime) {
 }
 
 void resetAllTimers(BlockNot *timer) {
-        resetAllTimers(timer->BlockNot::getStartTime());
+    resetAllTimers(timer->BlockNot::getStartTime());
 }
 
 void BlockNot::addToTimerList() {
-        if (firstTimer == nullptr) {
-            firstTimer = currentTimer = this;
-        } else {
-            currentTimer->nextTimer = this;
-            currentTimer = this;
-        }
-        this->nextTimer = nullptr;
+    if (firstTimer == nullptr) {
+        firstTimer = currentTimer = this;
+    } else {
+        currentTimer->nextTimer = this;
+        currentTimer = this;
+    }
+    this->nextTimer = nullptr;
 }

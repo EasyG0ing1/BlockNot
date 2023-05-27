@@ -836,6 +836,9 @@ simply make sure that only one thread will ever be causing changes to happen in 
 
 # Version Update Notes
 
+### 2.1.2
+- Bug Fix 
+
 ### 2.1.1
 - VERY MINOR change, I simply renamed the public enums to avoid conflicts with other libraries. 
 
