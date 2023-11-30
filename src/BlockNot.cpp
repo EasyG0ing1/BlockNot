@@ -273,7 +273,10 @@ bool BlockNot::notTriggered() {
 }
 
 bool BlockNot::firstTrigger() {
-    if (hasTriggered() && !onceTriggered) {
+    if(onceTriggered) {
+        return false;
+    }
+    else if (hasTriggered()) {
         onceTriggered = true;
         return timerState == RUNNING;
     }

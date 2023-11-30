@@ -836,6 +836,9 @@ simply make sure that only one thread will ever be causing changes to happen in 
 
 # Version Update Notes
 
+### 2.1.3
+- Changed `firstTrigger()` so that it does not run any calculations after it has triggered making subsequent calls more efficient.  
+
 ### 2.1.2
 - Bug Fix 
 
