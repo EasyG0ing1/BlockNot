@@ -243,7 +243,7 @@ bool BlockNot::triggered(bool resetOption) {
 
 bool BlockNot::triggeredOnDuration(bool allMissed) {
     bool triggered = hasTriggered();
-    unsigned long missedDurations;
+    unsigned long missedDurations = 0;
     unsigned long newStartTime;
     if (triggered) {
         switch(baseUnits) {
@@ -532,8 +532,8 @@ unsigned long BlockNot::timeSinceReset() {
 }
 
 bool BlockNot::hasTriggered() {
-    bool triggered;
-    long sinceReset = timeSinceReset();
+    bool triggered = false;
+    unsigned long sinceReset = timeSinceReset();
     switch(baseUnits) {
         case MICROSECONDS:
             triggered = sinceReset >= (unsigned long) duration.micros;
@@ -551,7 +551,7 @@ bool BlockNot::hasTriggered() {
 }
 
 bool BlockNot::hasNotTriggered() {
-    bool notTriggered;
+    bool notTriggered = false;
     switch(baseUnits) {
         case MICROSECONDS:
             notTriggered = timeSinceReset() < (unsigned long) duration.micros;
