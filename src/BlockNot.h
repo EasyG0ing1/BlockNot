@@ -191,7 +191,7 @@ private:
     bool onceTriggered = false;
 
     union cTime {
-        double seconds;
+        double seconds = 0.0;
 
         class milli_t {
             double seconds;
