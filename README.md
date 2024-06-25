@@ -542,7 +542,11 @@ There are more methods that allow you to affect change on your timers after inst
 
 # Examples
 
-There are currently eight examples in the library.
+There are currently nine examples in the library.
+
+### Advanced Auto Flashers
+
+This sketch was one I wrote recently that was for a friend who wanted to put large LEDs on the back of his 5th wheel so that people behind him received much better feedback depending on whether he hits his brakes, uses his turn signals or uses the hazard lights. It's a fairly good example of using BlockNot timers to achieve compartmentalized functions in code that runs continuously and never stops.  The code was written for a Raspberry Pi Pico.
 
 ### BlockNot Blink
 
@@ -835,6 +839,9 @@ simply make sure that only one thread will ever be causing changes to happen in 
 
 
 # Version Update Notes
+
+### 2.1.5
+- Added the Advanced Auto Flashers example and updated the README.  
 
 ### 2.1.4
 - Minor code changes per PR #19.  
