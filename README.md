@@ -615,6 +615,7 @@ Below you will find the name of each method in the library and any arguments tha
 
 ** For any method call that resets a timer by default, the resetting behavior can be overridden by passing **NO_RESET** into the methods argument, the exception to this is the triggeredOnDuration() method, which exists because of the way it resets your timer, so overriding reset would make the method useless.
 
+
 * **setDuration()** - Override the current timer duration and set it to a new value. This also resets the timer. If you need the timer to NOT reset, then pass arguments like this (newDuration, NO_RESET);
 * **addTime()** - Adds the time you pass into the argument to the current duration value. This does NOT reset the timer. To also reset the timer, call the method like this **addTime(newTime, WITH_RESET);**
 * **takeTime()** - The opposite effect of addTime(), same deal if you want to also reset the timer.
@@ -642,34 +643,39 @@ Below you will find the name of each method in the library and any arguments tha
 
 Here are the macro terms and the methods that they call along with any arguments they pass into the method:
 
-* **TIME_PASSED** - getTimeSinceLastReset()
-* **TIME_SINCE_RESET** - getTimeSinceLastReset()
-* **ELAPSED** - getTimeSinceLastReset()
-* **TIME_TILL_TRIGGER** - getTimeUntilTrigger()
-* **TIME_REMAINING** - getTimeUntilTrigger()
-* **REMAINING** - getTimeUntilTrigger()
-* **DURATION** - getDuration()
-* **LAST_TRIGGER_DURATION** - lastTriggerDuration()
-* **GET_UNITS** - getUnits()
-* **GET_START_TIME** - getStartTime()
-* **DONE** - triggered()
-* **TRIGGERED** - triggered()
-* **TRIGGERED_ON_DURATION** - triggeredOnDuration()
-* **TRIGGERED_ON_MARK** - triggeredOnDuration()
-* **TRIGGERED_ON_DURATION_ALL** - triggeredOnDuration(ALL)
-* **TRIGGERED_ALL** - triggeredOnDuration(ALL)
-* **HAS_TRIGGERED** - triggered(NO_RESET)
-* **NOT_DONE** - notTriggered()
-* **NOT_TRIGGERED** - notTriggered()
-* **FIRST_TRIGGER** - firstTrigger()
-* **RESET** - reset()
-* **RESET_TIMERS** - resetAllTimers()
-* **START** - start()
-* **STOP** - stop()
-* **ISSTARTED** - isRunning()
-* **ISRUNNING** - isRunning()
-* **ISSTOPPED** - isRunning()
-* **TOGGLE** - toggle()
+
+| **Macro**                     | **Method**               |
+|-------------------------------|--------------------------|
+| **TIME_PASSED**               | getTimeSinceLastReset()  |
+| **TIME_SINCE_RESET**          | getTimeSinceLastReset()  |
+| **ELAPSED**                   | getTimeSinceLastReset()  |
+| **TIME_TILL_TRIGGER**         | getTimeUntilTrigger()    |
+| **TIME_REMAINING**            | getTimeUntilTrigger()    |
+| **REMAINING**                 | getTimeUntilTrigger()    |
+| **DURATION**                  | getDuration()            |
+| **GET_UNITS**                 | getUnits()               |
+| **GET_START_TIME**            | getStartTime()           |
+| **DONE**                      | triggered()              |
+| **TRIGGERED**                 | triggered()              |
+| **LAST_TRIGGER_DURATION**     | lastTriggerDuration()    |
+| **HAS_TRIGGERED**             | triggered(NO_RESET)      |
+| **TRIGGERED_ON_DURATION**     | triggeredOnDuration()    |
+| **TRIGGERED_ON_MARK**         | triggeredOnDuration()    |
+| **TRIGGERED_ON_DURATION_ALL** | triggeredOnDuration(ALL) |
+| **TRIGGERED_ALL**             | triggeredOnDuration(ALL) |
+| **NOT_DONE**                  | notTriggered()           |
+| **NOT_TRIGGERED**             | notTriggered()           |
+| **FIRST_TRIGGER**             | firstTrigger()           |
+| **RESET**                     | reset()                  |
+| **RESET_TIMERS**              | resetAllTimers()         |
+| **START**                     | start()                  |
+| **START_RESET**               | start(WITH_RESET)        |
+| **STOP**                      | stop()                   |
+| **ISSTARTED**                 | isRunning()              |
+| **ISRUNNING**                 | isRunning()              |
+| **ISSTOPPED**                 | isStopped()              |
+| **TOGGLE**                    | toggle()                 |
+
 
 ## Constants
 
