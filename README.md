@@ -127,7 +127,11 @@ if (voltageReadTimer.TRIGGERED) {
 I have personally found it quite handy in some scenarios, to be able to get a boolean true response after the
 timer has triggered, but only once, so that the code which executes after getting a true response only executes
 once and when the test comes up again in the loop, a response of false will be given until the timer has been
-manually reset.
+manually reset. The false response can be changed to true if you desire, by running this method:
+
+```C++
+myTimer.setFirstTriggerResponse(true);
+```
 
 This kind of trigger is called FIRST_TRIGGER and you use it like this:
 ```C++  
@@ -622,7 +626,7 @@ Below you will find the name of each method in the library and any arguments tha
 * **triggered()** - Returns true if the duration time has passed. Also resets the timer to the current ```micros()``` or ```millis()``` (override by passing NO_RESET as an argument).
 * **triggeredOnDuration()** - See section above entitled **Triggered On Duration** for complete discussion.
 * **notTriggered()** - Returns true if the trigger event has not happened yet.
-* **firstTrigger()** - Returns true only once and only after the timer has triggered.
+* **firstTrigger()** - Returns true only once and only after the timer has triggered - can be modified with setFirstTriggerResponse(bool).
 * **getNextTriggerTime()** - Returns an unsigned long of the next time that the timer will trigger. If it has triggered, it will return 0.
 * **getTimeUntilTrigger()** - Returns an unsigned long with the number of microseconds remaining until the trigger event happens, converted to the timers base units.
 * **getStartTime()** - Returns an unsigned long, The value of ```micros()``` or  ```millis()``` that was recorded at the last reset of the timer, converted to the timers currently assigned base unit.
@@ -845,6 +849,9 @@ simply make sure that only one thread will ever be causing changes to happen in 
 
 
 # Version Update Notes
+
+### 2.2.0
+- Added the setFirstTriggerResponse(bool) method to provide an option for the response to firstTrigger()  
 
 ### 2.1.5
 - Added the Advanced Auto Flashers example and updated the README.  

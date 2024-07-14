@@ -134,6 +134,8 @@ public:
 
     bool firstTrigger();
 
+    void setFirstTriggerResponse(bool response);
+
     unsigned long getNextTriggerTime();
 
     unsigned long getTimeUntilTrigger();
@@ -189,6 +191,7 @@ private:
     unsigned long lastDuration;
     int totalMissedDurations = 0;
     bool onceTriggered = false;
+    bool firstTriggerResponse = false;
 
     union cTime {
         double seconds = 0.0;

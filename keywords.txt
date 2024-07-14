@@ -31,6 +31,7 @@ triggered   KEYWORD2
 triggeredOnDuration KEYWORD2
 notTriggered    KEYWORD2
 firstTrigger    KEYWORD2
+setFirstTriggerResponse    KEYWORD2
 getNextTriggerTime  KEYWORD2
 getTimeUntilTrigger KEYWORD2
 getStartTime    KEYWORD2

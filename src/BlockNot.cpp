@@ -274,13 +274,17 @@ bool BlockNot::notTriggered() {
 
 bool BlockNot::firstTrigger() {
     if(onceTriggered) {
-        return false;
+        return firstTriggerResponse;
     }
-    else if (hasTriggered()) {
+    if (hasTriggered()) {
         onceTriggered = true;
         return timerState == RUNNING;
     }
     return false;
+}
+
+void BlockNot::setFirstTriggerResponse(bool response) {
+    firstTriggerResponse = response;
 }
 
 unsigned long BlockNot::getNextTriggerTime() {
@@ -634,13 +638,13 @@ unsigned long BlockNot::convertUnits(cTime timeValue) {
 void resetAllTimers(const unsigned long newStartTime) {
     BlockNot *timer = BlockNot::getFirstTimer();
     while (timer != nullptr) {
-        timer->BlockNot::reset(newStartTime);
-        timer = timer->BlockNot::getNextTimer();
+        timer->reset(newStartTime);
+        timer = timer->getNextTimer();
     }
 }
 
 void resetAllTimers(BlockNot *timer) {
-    resetAllTimers(timer->BlockNot::getStartTime());
+    resetAllTimers(timer->getStartTime());
 }
 
 void BlockNot::addToTimerList() {
