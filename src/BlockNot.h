@@ -82,7 +82,7 @@ public:
      */
     BlockNot();
 
-    BlockNot(unsigned long milliseconds);
+    explicit BlockNot(unsigned long milliseconds);
 
     BlockNot(unsigned long milliseconds, BlockNotState state);
 
@@ -118,13 +118,13 @@ public:
      * Public Methods
      */
 
-    void setDuration(const unsigned long time, bool resetOption = WITH_RESET);
+    void setDuration(unsigned long time, bool resetOption = WITH_RESET);
 
-    void setDuration(const unsigned long time, BlockNotUnit units, bool resetOption = WITH_RESET);
+    void setDuration(unsigned long time, BlockNotUnit units, bool resetOption = WITH_RESET);
 
-    void addTime(const unsigned long time, bool resetOption = NO_RESET);
+    void addTime(unsigned long time, bool resetOption = NO_RESET);
 
-    void takeTime(const unsigned long time, bool resetOption = NO_RESET);
+    void takeTime(unsigned long time, bool resetOption = NO_RESET);
 
     bool triggered(bool resetOption = true);
 
@@ -168,17 +168,21 @@ public:
 
     void switchTo(BlockNotUnit units);
 
-    void reset(const unsigned long newStartTime = 0);
+    void reset(unsigned long newStartTime = 0);
 
     void setMillisOffset(unsigned long offset = 0);
 
     void setMicrosOffset(unsigned long offset = 0);
 
+    void speedComp(unsigned long time);
+
+    void disableSpeedComp();
+
     unsigned long getMillis();
 
     static BlockNot *getFirstTimer() { return firstTimer; }
 
-    BlockNot *getNextTimer() { return nextTimer; }
+    BlockNot *getNextTimer() const { return nextTimer; }
 
 private:
     /**
@@ -192,6 +196,8 @@ private:
     int totalMissedDurations = 0;
     bool onceTriggered = false;
     bool firstTriggerResponse = false;
+    bool speedCompensation = false;
+    unsigned long compTime = 0;
 
     union cTime {
         double seconds = 0.0;

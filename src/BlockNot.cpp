@@ -179,17 +179,17 @@ BlockNot::BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNo
  * Public Methods
  */
 
-void BlockNot::setDuration(const unsigned long time, bool resetOption) {
+void BlockNot::setDuration(unsigned long time, bool resetOption) {
     initDuration(time);
     if (resetOption) reset();
 }
 
-void BlockNot::setDuration(const unsigned long time, BlockNotUnit inUnits, bool resetOption) {
+void BlockNot::setDuration(unsigned long time, BlockNotUnit inUnits, bool resetOption) {
     initDuration(time, inUnits);
     if (resetOption) reset();
 }
 
-void BlockNot::addTime(const unsigned long time, bool resetOption) {
+void BlockNot::addTime(unsigned long time, bool resetOption) {
     unsigned long newDuration;
     switch(baseUnits) {
         case MICROSECONDS:
@@ -211,7 +211,7 @@ void BlockNot::addTime(const unsigned long time, bool resetOption) {
     if (resetOption) reset();
 }
 
-void BlockNot::takeTime(const unsigned long time, bool resetOption) {
+void BlockNot::takeTime(unsigned long time, bool resetOption) {
     long newDuration;
     switch(baseUnits) {
         case MICROSECONDS:
@@ -449,19 +449,26 @@ unsigned long BlockNot::convert(unsigned long value, BlockNotUnit units) {
 
 void BlockNot::switchTo(BlockNotUnit units) { baseUnits = units; }
 
-void BlockNot::reset(const unsigned long newStartTime) {
+void BlockNot::reset(unsigned long newStartTime) {
     unsigned long finalStartTime = newStartTime;
     if(newStartTime == 0) {
         switch(baseUnits) {
-            case MICROSECONDS:
+            case MICROSECONDS: {
                 finalStartTime = micros() + microsOffset;
                 break;
-            case MILLISECONDS:
+            }
+            case MILLISECONDS: {
                 finalStartTime = millis() + millisOffset;
+                if (speedCompensation)
+                    delay(compTime);
                 break;
-            case SECONDS:
+            }
+            case SECONDS: {
                 finalStartTime = millis() + millisOffset;
+                if (speedCompensation)
+                    delay(compTime);
                 break;
+            }
         }
     }
     resetTimer(finalStartTime);
@@ -476,6 +483,16 @@ void BlockNot::setMillisOffset(unsigned long offset) {
 void BlockNot::setMicrosOffset(unsigned long offset) {
     microsOffset = offset;
 }
+
+void BlockNot::speedComp(unsigned long time) {
+    speedCompensation = true;
+    compTime = time;
+}
+
+void BlockNot::disableSpeedComp() {
+    speedCompensation = false;
+}
+
 
 unsigned long BlockNot::getMillis() {
     return millis() + millisOffset;
@@ -656,3 +673,4 @@ void BlockNot::addToTimerList() {
     }
     this->nextTimer = nullptr;
 }
+

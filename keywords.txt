@@ -53,6 +53,8 @@ setMicrosOffset   KEYWORD2
 getMillis   KEYWORD2
 getFirstTimer   KEYWORD2
 getNextTimer   KEYWORD2
+speedComp   KEYWORD2
+disableSpeedComp   KEYWORD2
 
 ######################################
 # Instances (KEYWORD2)

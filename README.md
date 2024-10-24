@@ -2,6 +2,9 @@
 This library enables you to create non-blocking timers using simple, common sense terms which simplifies the reading and writing of your code. It offers, among several things, convenient timer functionality, but most of all ... it gets you away from blocking methods - like delay() - as a means of managing events in your code.
 
 **Non-Blocking is the proper way to implement timing events in Arduino code and BlockNot makes it easy!**
+
+## *** If you are noticing unwanted rapid succession triggering on high speed microcontrollers, [READ THIS](#Triggering-Too-Fast-With-High-Speed-Microcontrollers)
+
 # Table of Contents
 <!-- TOC -->
 * [Quick Start](#quick-start)
@@ -847,8 +850,39 @@ void loop() {
 Even though BlockNot is not "thread-safe" you can still use it in multi-threaded environments if you
 simply make sure that only one thread will ever be causing changes to happen in the timer itself.
 
+## Triggering Too Fast With High Speed Microcontrollers
+
+If you're noticing that some timers seem to trigger immediately after a trigger or a reset and you're running
+on a high speec microcontroller like a Pi Pico, you can enable a feature called `speedComp()` and pass in an
+amount of time for a delay during each reset. When I noticed the problem, I had in my loop, a switch statement
+that would run each time the timer triggered, and I had three cases in the switch. In this instance, each case
+that hit would set the next trigger to run the next case. Each case displayed something different on an OLED
+scree. However, I was noticing that the information was not being shown in the right order but instead I would see a
+quick flash of something then it would go to the next case after the one that was supposed to be next.
+
+What fixed it for me was adding a 5ms delay after each triggering of the timer, so I added this feature, and you
+can use it like this:
+
+```c++
+myTimer.speedComp(5);
+```
+
+Put that in your setup() code as it only needs to be executed one time. That will automatically implement a
+delay (of 5 milliseconds in this example) every time the timer is reset. And the timer is automatically reset
+every time it triggers by default.
+
+If you need to disable this feature:
+
+```c++
+myTimer.disableSpeedComp();
+```
 
 # Version Update Notes
+
+### 2.3.0
+- Added the speedComp() feature to compensate for unwanted rapid succession triggers when using a high speed
+microcontroller such as a Raspberry Pi Pico. [READ THIS](#Triggering-Too-Fast-With-High-Speed-Microcontrollers)
+for more information.
 
 ### 2.2.0
 - Added the setFirstTriggerResponse(bool) method to provide an option for the response to firstTrigger()  
