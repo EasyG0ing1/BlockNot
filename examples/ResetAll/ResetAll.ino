@@ -2,15 +2,14 @@
  * This library shows how to use the resetAllTimers() method
  */
 
+#include <Arduino.h>
 #include <BlockNot.h>
 
-BlockNot timer1(1, SECONDS, GLOBAL_RESET);
-BlockNot timer2(5, SECONDS);
-BlockNot timer3(7500);
-
-BlockNot resetTimer(30, SECONDS);  // Timer to trigger reset of all timers every 30s
-
-unsigned long startTime;   // To count seconds independent of timers and use them as a simple reference.
+BlockNot timer1(32, SECONDS, GLOBAL_RESET);
+BlockNot timer2(52, SECONDS);
+BlockNot timer3(19000);
+BlockNot printRemainingTimer(2, SECONDS);
+BlockNot resetTimer(8, SECONDS);
 
 void printTimers() {
     String heading = "Timer\tDuration\tUnits\n-----------------------------";
@@ -24,38 +23,38 @@ void printTimers() {
     Serial.print("\n");
 }
 
-void printTime(int timer) {
-    String time = String(millis() - startTime);
-    String timerString = timer == 1 ? "ONE" : (timer == 2) ? "TWO" : "THREE";
-    Serial.println(time + ": " + timerString + " triggered");
+void printRemaining() {
+    String t1 = "Timer One Remaining:   " + String(timer1.REMAINING) + " " + timer1.GET_UNITS;
+    String t2 = "Timer Two Remaining:   " + String(timer2.REMAINING) + " " + timer2.GET_UNITS;
+    String t3 = "Timer Three Remaining: " + String(timer3.REMAINING) + " " + timer3.GET_UNITS;
+    Serial.println(t1);
+    Serial.println(t2);
+    Serial.println(t3);
+    Serial.print("\n");
 }
+
 
 void setup() {
     Serial.begin(115200);
-    delay(1500);
+    delay(2000);
     Serial.println(F("\nREADY!\n"));
     delay(1000);
     printTimers();
-    startTime = millis();
-    resetAllTimers(startTime);
+    int count = 0;
+    while(true) {
+        if(printRemainingTimer.TRIGGERED) {
+            printRemaining();
+            count++;
+        }
+        if (resetTimer.TRIGGERED) {
+            Serial.println("\nRESET\n");
+            RESET_TIMERS;
+        }
+        if (count >= 12)
+            break;
+    }
+    Serial.println("\nDONE!\n");
 }
 
-void loop()
-{
-    if (timer1.TRIGGERED) {
-        printTime(1);
-    }
-    
-    if (timer2.TRIGGERED) {
-        printTime(2);
-    }
-    
-    if (timer3.TRIGGERED) {
-        printTime(3);
-    }
-    
-    if (resetTimer.TRIGGERED_ON_DURATION) {
-        Serial.println(F("\n\n---- Reset all timers ----\n"));
-        RESET_TIMERS;
-    }
+void loop() {
 }

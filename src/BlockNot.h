@@ -23,7 +23,7 @@
  */
 
 enum BlockNotUnit {
-    mic, mil, sec
+    mic_cTime, mil_cTime, sec_cTime, min_cTime
 };
 enum BlockNotGlobal {
     yes, no
@@ -35,48 +35,85 @@ enum BlockNotState {
 #define WITH_RESET true
 #define NO_RESET   false
 #define ALL        true
-#define SECONDS                 BlockNotUnit::sec
-#define MILLISECONDS            BlockNotUnit::mil
-#define MICROSECONDS            BlockNotUnit::mic
+#define MICROSECONDS            BlockNotUnit::mic_cTime
+#define MILLISECONDS            BlockNotUnit::mil_cTime
+#define SECONDS                 BlockNotUnit::sec_cTime
+#define MINUTES                 BlockNotUnit::min_cTime
 #define NO_GLOBAL_RESET         BlockNotGlobal::no
 #define GLOBAL_RESET            BlockNotGlobal::yes
 #define RUNNING                 BlockNotState::running
 #define STOPPED                 BlockNotState::stopped
 
-#define TIME_PASSED                 getTimeSinceLastReset()
-#define TIME_SINCE_RESET            getTimeSinceLastReset()
 #define ELAPSED                     getTimeSinceLastReset()
-#define TIME_TILL_TRIGGER           getTimeUntilTrigger()
-#define TIME_REMAINING              getTimeUntilTrigger()
 #define REMAINING                   getTimeUntilTrigger()
 #define DURATION                    getDuration()
 #define GET_UNITS                   getUnits()
 #define GET_START_TIME              getStartTime()
-#define DONE                        triggered()
+
+#ifdef __GNUC__ // GCC or Clang
+    #define DONE triggered()
+    #warning "DONE is deprecated and will be removed in a future release. Use TRIGGERED instead."
+    #define TIME_PASSED getTimeSinceLastReset()
+    #warning "WARNING: TIME_PASSED is deprecated and will be removed in a future release. Use ELAPSED instead."
+    #define TIME_SINCE_RESET getTimeSinceLastReset()
+    #warning "WARNING: TIME_SINCE_RESET is deprecated and will be removed in a future release. Use ELAPSED instead."
+    #define TIME_TILL_TRIGGER getTimeUntilTrigger()
+    #warning "WARNING: TIME_TILL_TRIGGER is deprecated and will be removed in a future release. Use REMAINING instead."
+    #define TRIGGERED_ON_MARK triggeredOnDuration()
+    #warning "WARNING: TRIGGERED_ON_MARK is deprecated and will be removed in a future release. Use TRIGGERED_ON_DURATION instead."
+    #define NOT_DONE notTriggered()
+    #warning "WARNING: NOT_DONE is deprecated and will be removed in a future release. Use NOT_TRIGGERED instead."
+    #define ISSTARTED isRunning()
+    #warning "WARNING: ISSTARTED is deprecated and will be removed in a future release. Use ISRUNNING instead."
+    #define TRIGGERED_ON_DURATION_ALL triggeredOnDuration(ALL)
+    #warning "WARNING: TRIGGERED_ON_DURATION_ALL is deprecated and will be removed in a future release. Use TRIGGERED_ON_DURATION(ALL) instead."
+    #define TRIGGERED_ALL triggeredOnDuration(ALL)
+    #warning "WARNING: TRIGGERED_ALL is deprecated and will be removed in a future release. Use TRIGGERED_ON_DURATION(ALL) instead."
+    #define START_RESET start(WITH_RESET)
+    #warning "WARNING: START_RESET is deprecated and will be removed in a future release. Use START(WITH_RESET) instead."
+#elif defined(_MSC_VER) // Microsoft Visual Studio
+    #define DONE (__pragma(message("WARNING: DONE is deprecated and will be removed in a future release. Use TRIGGERED instead.")), triggered())
+    #define TIME_PASSED (__pragma(message("WARNING: TIME_PASSED is deprecated and will be removed in a future release. Use ELAPSED instead.")), getTimeSinceLastReset())
+    #define TIME_SINCE_RESET (__pragma(message("WARNING: TIME_SINCE_RESET is deprecated and will be removed in a future release. Use ELAPSED instead.")), getTimeSinceLastReset())
+    #define TIME_TILL_TRIGGER (__pragma(message("WARNING: TIME_TILL_TRIGGER is deprecated and will be removed in a future release. Use REMAINING instead.")), getTimeUntilTrigger())
+    #define TRIGGERED_ON_MARK (__pragma(message("WARNING: TRIGGERED_ON_MARK is deprecated and will be removed in a future release. Use TRIGGERED_ON_DURATION instead.")), triggeredOnDuration())
+    #define TRIGGERED_ON_DURATION_ALL (__pragma(message("WARNING: TRIGGERED_ON_DURATION_ALL is deprecated and will be removed in a future release. Use TRIGGERED_ON_DURATION(ALL) instead.")), triggeredOnDuration(ALL))
+    #define TRIGGERED_ALL (__pragma(message("WARNING: TRIGGERED_ALL is deprecated and will be removed in a future release. Use TRIGGERED_ON_DURATION(ALL) instead.")), triggeredOnDuration(ALL))
+    #define NOT_DONE (__pragma(message("WARNING: NOT_DONE is deprecated and will be removed in a future release. Use NOT_TRIGGERED instead.")), notTriggered())
+    #define START_RESET (__pragma(message("WARNING: START_RESET is deprecated and will be removed in a future release. Use START(WITH_RESET) instead.")), start(WITH_RESET))
+    #define ISSTARTED (__pragma(message("WARNING: ISSTARTED is deprecated and will be removed in a future release. Use ISRUNNING instead.")), isRunning())
+#else
+    #define DONE triggered()
+    #define TIME_PASSED getTimeSinceLastReset()
+    #define TIME_SINCE_RESET getTimeSinceLastReset()
+    #define TIME_TILL_TRIGGER getTimeUntilTrigger()
+    #define TRIGGERED_ON_MARK triggeredOnDuration()
+    #define NOT_DONE notTriggered()
+    #define ISSTARTED isRunning()
+    #define TRIGGERED_ON_DURATION_ALL triggeredOnDuration(ALL)
+    #define TRIGGERED_ALL triggeredOnDuration(ALL)
+    #define START_RESET start(WITH_RESET)
+#endif
+
 #define TRIGGERED                   triggered()
 #define LAST_TRIGGER_DURATION       lastTriggerDuration()
 #define HAS_TRIGGERED               triggered(NO_RESET)
-#define TRIGGERED_ON_DURATION       triggeredOnDuration()
-#define TRIGGERED_ON_MARK           triggeredOnDuration()
-#define TRIGGERED_ON_DURATION_ALL   triggeredOnDuration(ALL)
-#define TRIGGERED_ALL               triggeredOnDuration(ALL)
-#define NOT_DONE                    notTriggered()
+#define TRIGGER_NEXT                triggerNext()
+#define TRIGGERED_ON_DURATION(...)  triggeredOnDuration(__VA_ARGS__)
 #define NOT_TRIGGERED               notTriggered()
 #define FIRST_TRIGGER               firstTrigger()
 #define RESET                       reset()
 #define RESET_TIMERS                resetAllTimers()
-#define START                       start()
-#define START_RESET                 start(WITH_RESET)
+#define START(...)                  start(__VA_ARGS__)
 #define STOP                        stop()
-#define ISSTARTED                   isRunning()
 #define ISRUNNING                   isRunning()
 #define ISSTOPPED                   isStopped()
 #define TOGGLE                      toggle()
 
 class BlockNot {
+#define TIME_PASSED getTimeSinceLastReset()
 
 public:
-
     /**
      * Constructors
      */
@@ -108,11 +145,13 @@ public:
 
     BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, BlockNotGlobal globalReset);
 
-    BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, BlockNotGlobal globalReset, BlockNotState state);
+    BlockNot(unsigned long milliseconds, unsigned long stoppedReturnValue, BlockNotGlobal globalReset,
+             BlockNotState state);
 
     BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNotUnit units, BlockNotGlobal globalReset);
 
-    BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNotUnit units, BlockNotGlobal globalReset, BlockNotState state);
+    BlockNot(unsigned long time, unsigned long stoppedReturnValue, BlockNotUnit units, BlockNotGlobal globalReset,
+             BlockNotState state);
 
     /**
      * Public Methods
@@ -134,23 +173,25 @@ public:
 
     bool firstTrigger();
 
+    void triggerNext();
+
     void setFirstTriggerResponse(bool response);
 
-    unsigned long getNextTriggerTime();
+    unsigned long getNextTriggerTime() const;
 
-    unsigned long getTimeUntilTrigger();
+    unsigned long getTimeUntilTrigger() const;
 
-    unsigned long getStartTime();
+    unsigned long getStartTime() const;
 
-    unsigned long getStartTime(BlockNotUnit units);
+    unsigned long getStartTime(BlockNotUnit units) const;
 
-    unsigned long getDuration();
+    unsigned long getDuration() const;
 
-    unsigned long lastTriggerDuration();
+    unsigned long lastTriggerDuration() const;
 
-    String getUnits();
+    String getUnits() const;
 
-    unsigned long getTimeSinceLastReset();
+    unsigned long getTimeSinceLastReset() const;
 
     void setStoppedReturnValue(unsigned long stoppedReturnValue);
 
@@ -158,13 +199,13 @@ public:
 
     void stop();
 
-    bool isRunning();
+    bool isRunning() const;
 
-    bool isStopped();
+    bool isStopped() const;
 
     void toggle();
 
-    unsigned long convert(unsigned long value, BlockNotUnit units);
+    unsigned long convert(unsigned long value, BlockNotUnit units) const;
 
     void switchTo(BlockNotUnit units);
 
@@ -178,93 +219,143 @@ public:
 
     void disableSpeedComp();
 
-    unsigned long getMillis();
+    unsigned long getMillis() const;
 
-    static BlockNot *getFirstTimer() { return firstTimer; }
+    BlockNotUnit getBaseUnits() const;
 
-    BlockNot *getNextTimer() const { return nextTimer; }
+    static void getHelp(Print &output, bool haltCode = false);
+
+    static void getHelp(bool haltCode = false);
+
+    class cTime {
+    public:
+        double seconds = 0.0; // Central storage for time in seconds
+
+        // Class for milliseconds
+        class milli_t {
+            double &seconds;
+
+        public:
+            milli_t(double &s) : seconds(s) {
+            }
+
+            milli_t &operator=(double ms) {
+                seconds = ms * 0.001; // Convert milliseconds to seconds
+                return *this;
+            }
+
+            operator double() const {
+                return seconds * 1000.0; // Convert seconds to milliseconds
+            }
+        };
+
+        // Class for microseconds
+        class micro_t {
+            double &seconds;
+
+        public:
+            micro_t(double &s) : seconds(s) {
+            }
+
+            micro_t &operator=(double us) {
+                seconds = us * 0.000001; // Convert microseconds to seconds
+                return *this;
+            }
+
+            operator double() const {
+                return seconds * 1000000.0; // Convert seconds to microseconds
+            }
+        };
+
+        // Class for minutes
+        class minutes_t {
+            double &seconds;
+
+        public:
+            minutes_t(double &s) : seconds(s) {
+            }
+
+            minutes_t &operator=(double mins) {
+                seconds = mins * 60.0; // Convert minutes to seconds
+                return *this;
+            }
+
+            operator double() const {
+                return seconds / 60.0; // Convert seconds to minutes
+            }
+        };
+
+        // Accessors for helper classes
+
+        milli_t millis;
+        micro_t micros;
+        minutes_t minutes;
+
+        // Constructor
+        cTime() : millis(seconds), micros(seconds), minutes(seconds) {
+        }
+
+        // Getter for seconds
+        double getSeconds() const { return seconds; }
+
+        // Setter for seconds
+        void setSeconds(double s) { seconds = s; }
+    };
+
+    static BlockNot *firstTimer;
+    static BlockNot *currentTimer;
+    BlockNot *nextTimer;
 
 private:
     /**
      * Private Variables and Methods
      */
     unsigned long startTime;
-    unsigned long millisOffset = 0;
-    unsigned long microsOffset = 0;
-    unsigned long timerStoppedReturnValue = 0;
+    unsigned long millisOffset;
+    unsigned long microsOffset;
+    unsigned long timerStoppedReturnValue;
     unsigned long lastDuration;
-    int totalMissedDurations = 0;
-    bool onceTriggered = false;
-    bool firstTriggerResponse = false;
-    bool speedCompensation = false;
-    unsigned long compTime = 0;
-
-    union cTime {
-        double seconds = 0.0;
-
-        class milli_t {
-            double seconds;
-        public:
-            milli_t &operator=(double ms) {
-                seconds = ms * .001;
-                return *this;
-            }
-            operator double() const {
-                return seconds * 1000.0;
-            }
-        } millis;
-
-        class micro_t {
-            double seconds;
-        public:
-            micro_t &operator=(double us) {
-                seconds = us * .000001;
-                return *this;
-            }
-            operator double() const {
-                return seconds * 1000000.0;
-            }
-        } micros;
-    };
+    int totalMissedDurations;
+    bool onceTriggered;
+    bool triggerOnNext;
+    bool firstTriggerResponse;
+    bool speedCompensation;
+    unsigned long compTime;
+    unsigned long newStartTimeMillis;
+    unsigned long newStartTimeMicros;
 
     static BlockNotGlobal global;
-    BlockNotUnit baseUnits = MILLISECONDS;
+    BlockNotUnit baseUnits;
     cTime duration;
     cTime stopTime;
-    BlockNotState timerState = RUNNING;
+    BlockNotState timerState;
 
-    static BlockNot *currentTimer;
-    static BlockNot *firstTimer;
-    BlockNot *nextTimer;
-
-    void resetTimer(const unsigned long newStartTime);
+    void resetTimer(unsigned long newStartTime);
 
     void initDuration(unsigned long time);
 
     void initDuration(unsigned long time, BlockNotUnit desiredUnits);
 
-    unsigned long timeSinceReset();
+    unsigned long timeSinceReset() const;
 
     bool hasTriggered();
 
-    bool hasNotTriggered();
+    bool hasNotTriggered() const;
 
     void addToTimerList();
 
-    unsigned long timeTillTrigger();
+    unsigned long timeTillTrigger() const;
 
-    unsigned long remaining();
+    unsigned long remaining() const;
 
-    unsigned long getDurationTriggerStartTime();
+    unsigned long getDurationTriggerStartTime() const;
 
-    unsigned long convertUnits(cTime timeValue);
+    unsigned long convertUnits(const cTime &timeValue) const;
 };
 
 /**
  * Global methods affecting all instances of the BlockNot class.
  */
-void resetAllTimers(const unsigned long newStartTime = micros());
-
-void resetAllTimers(BlockNot *timer);
+void resetAllTimers(unsigned long newStartTime = 0);
 
 #endif
